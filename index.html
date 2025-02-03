@@ -62,7 +62,7 @@
 
     <div class="container light-mode">
         <h1>Conversor de Texto a Audio</h1>
-        <p>Escribe tu texto o carga un archivo .txt y conviértelo en un archivo de audio descargable.</p>
+        <p>Escribe tu texto o carga un archivo .txt y conviértelo en audio.</p>
 
         <!-- Modo Oscuro -->
         <button id="themeToggle" class="btn btn-secondary w-100 mb-3">Cambiar a Modo Oscuro</button>
@@ -96,8 +96,8 @@
 
             <!-- Botones de Acción -->
             <div class="audio-controls">
-                <button type="button" class="btn btn-primary w-100 mb-2" id="convertButton">Convertir a Audio</button>
-                <button type="button" class="btn btn-success w-100" id="downloadButton" disabled>Descargar Audio</button>
+                <button type="button" class="btn btn-primary w-100 mb-2" id="convertButton">Reproducir Audio</button>
+                <button type="button" class="btn btn-success w-100" id="downloadButton" disabled>Descargar Audio (Simulado)</button>
             </div>
         </form>
 
@@ -108,27 +108,8 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js"></script>
     <script>
-        // Configuración de Firebase
-        const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU_AUTH_DOMAIN",
-            projectId: "TU_PROJECT_ID",
-            storageBucket: "TU_STORAGE_BUCKET",
-            messagingSenderId: "TU_MESSAGING_SENDER_ID",
-            appId: "TU_APP_ID"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const storage = getStorage(app);
-
         // Variables globales
-        let audioBlob = null;
-
-        // Obtener elementos del DOM
         const textInput = document.getElementById('textInput');
         const fileInput = document.getElementById('fileInput');
         const languageSelect = document.getElementById('languageSelect');
@@ -162,8 +143,8 @@
             }
         });
 
-        // Función para convertir texto a audio
-        function convertTextToAudio() {
+        // Función para reproducir el texto como audio
+        function playTextAsAudio() {
             const utterance = new SpeechSynthesisUtterance(textInput.value.trim());
             const voices = getVoices();
 
@@ -175,50 +156,27 @@
             utterance.voice = voices[0];
             utterance.rate = parseFloat(speedInput.value);
 
-            // Reproducir el audio
+            // Cancelar cualquier reproducción anterior
             speechSynthesis.cancel();
             speechSynthesis.speak(utterance);
 
-            // Crear Blob desde el audio generado
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioContext.createOscillator();
-            source.connect(audioContext.destination);
-            source.start();
-
-            // Simular grabación (por simplicidad)
-            setTimeout(() => {
-                const audioBlob = new Blob([new Uint8Array([0])], { type: 'audio/wav' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                audioPlayer.src = audioUrl;
-                audioPlayer.style.display = 'block';
-                downloadButton.disabled = false;
-                document.getElementById('response').style.display = 'block';
-            }, 2000); // Simulación de 2 segundos
+            // Mostrar mensaje de éxito
+            alert('El audio está siendo reproducido.');
         }
 
-        // Manejar clic en "Convertir a Audio"
+        // Manejar clic en "Reproducir Audio"
         convertButton.addEventListener('click', () => {
             if (textInput.value.trim() === '') {
                 alert('Por favor, ingresa un texto.');
                 return;
             }
 
-            convertTextToAudio();
+            playTextAsAudio();
         });
 
-        // Descargar el archivo MP3
+        // Descargar el archivo MP3 (simulado)
         downloadButton.addEventListener('click', () => {
-            if (!audioBlob) {
-                alert('Primero genera el audio.');
-                return;
-            }
-
-            const url = URL.createObjectURL(audioBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'audio_generado.wav';
-            a.click();
-            URL.revokeObjectURL(url);
+            alert('La descarga de audio no está completamente implementada debido a limitaciones técnicas.');
         });
 
         // Cambiar entre modos claro y oscuro
