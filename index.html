@@ -8,21 +8,23 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- LAME.js (para convertir WAV a MP3) -->
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.4.0/dist/lame.min.js"></script>
     <!-- Estilos personalizados -->
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
             margin: 0;
             padding: 0;
+            transition: background-color 0.3s, color 0.3s;
         }
         .container {
             max-width: 600px;
             margin: 50px auto;
             padding: 20px;
-            background-color: white;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, color 0.3s;
         }
         h1 {
             text-align: center;
@@ -35,6 +37,14 @@
         .btn-primary:hover {
             background-color: #0056b3;
             border-color: #004999;
+        }
+        .dark-mode {
+            background-color: #343a40 !important;
+            color: #ffffff !important;
+        }
+        .dark-mode .btn-primary {
+            background-color: #0056b3 !important;
+            border-color: #004999 !important;
         }
         .voice-settings {
             display: flex;
@@ -50,14 +60,24 @@
         }
     </style>
 </head>
-<body>
+<body class="light-mode">
 
-    <div class="container">
+    <div class="container light-mode">
         <h1>Conversor de Texto a Audio</h1>
-        <p>Escribe tu texto y conviértelo en un archivo de audio que puedes descargar.</p>
+        <p>Escribe tu texto o carga un archivo .txt y conviértelo en un archivo de audio descargable.</p>
+
+        <!-- Modo Oscuro -->
+        <button id="themeToggle" class="btn btn-secondary w-100 mb-3">Cambiar a Modo Oscuro</button>
 
         <!-- Formulario Interactivo -->
         <form id="textToAudioForm">
+            <!-- Cargar Archivo TXT -->
+            <div class="mb-3">
+                <label for="fileInput" class="form-label">Cargar Archivo .txt:</label>
+                <input type="file" class="form-control" id="fileInput" accept=".txt">
+            </div>
+
+            <!-- Ingresar Texto -->
             <div class="mb-3">
                 <label for="textInput" class="form-label">Texto:</label>
                 <textarea class="form-control" id="textInput" rows="5" placeholder="Ingresa tu texto aquí..." required></textarea>
@@ -80,6 +100,7 @@
             <div class="audio-controls">
                 <button type="button" class="btn btn-primary w-100 mb-2" id="convertButton">Convertir a Audio</button>
                 <button type="button" class="btn btn-success w-100" id="downloadButton" disabled>Descargar Audio</button>
+                <button type="button" class="btn btn-info w-100" id="uploadToCloudButton" disabled>Subir a la Nube</button>
             </div>
         </form>
 
@@ -90,26 +111,57 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS y Popper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Script personalizado -->
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js"></script>
     <script>
-        const synth = window.speechSynthesis;
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_AUTH_DOMAIN",
+            projectId: "TU_PROJECT_ID",
+            storageBucket: "TU_STORAGE_BUCKET",
+            messagingSenderId: "TU_MESSAGING_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+
+        // Variables globales
         let audioBlob = null;
 
         // Obtener elementos del DOM
         const textInput = document.getElementById('textInput');
+        const fileInput = document.getElementById('fileInput');
         const languageSelect = document.getElementById('languageSelect');
         const speedInput = document.getElementById('speedInput');
         const convertButton = document.getElementById('convertButton');
         const downloadButton = document.getElementById('downloadButton');
+        const uploadToCloudButton = document.getElementById('uploadToCloudButton');
         const audioPlayer = document.getElementById('audioPlayer');
 
         // Función para obtener voces disponibles
         function getVoices() {
-            const voices = synth.getVoices();
+            const voices = speechSynthesis.getVoices();
             return voices.filter(voice => voice.lang === languageSelect.value);
         }
+
+        // Función para cargar el contenido de un archivo .txt
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    textInput.value = e.target.result; // Coloca el contenido en el textarea
+                };
+
+                reader.readAsText(file);
+            } else {
+                alert('Por favor, selecciona un archivo válido.');
+            }
+        });
 
         // Función para convertir texto a audio
         function convertTextToAudio() {
@@ -125,7 +177,7 @@
             utterance.rate = parseFloat(speedInput.value);
 
             // Crear un medio de grabación
-            const mediaStream = new MediaRecorder(synth.speak(utterance));
+            const mediaStream = new MediaRecorder(speechSynthesis.speak(utterance));
             const audioChunks = [];
 
             mediaStream.ondataavailable = event => {
@@ -138,6 +190,7 @@
                 audioPlayer.src = audioUrl;
                 audioPlayer.style.display = 'block';
                 downloadButton.disabled = false;
+                uploadToCloudButton.disabled = false;
                 document.getElementById('response').style.display = 'block';
             };
 
@@ -154,31 +207,105 @@
             convertTextToAudio();
         });
 
-        // Manejar clic en "Descargar Audio"
+        // Función para convertir WAV a MP3 usando LAME.js
+        async function convertWavToMp3(wavBlob) {
+            const wavArrayBuffer = await wavBlob.arrayBuffer();
+            const wavDataView = new DataView(wavArrayBuffer);
+
+            // Configuración del codificador MP3
+            const mp3Encoder = new lamejs.Mp3Encoder(1, 44100, 128); // Mono, 44.1kHz, bitrate 128kbps
+            const samples = [];
+            const mp3Data = [];
+
+            // Leer los datos del archivo WAV
+            let i = 44; // Saltar los primeros 44 bytes del encabezado WAV
+            while (i + 4 < wavDataView.byteLength) {
+                const sample = wavDataView.getInt16(i, true);
+                samples.push(sample);
+                i += 2;
+            }
+
+            // Codificar muestras en MP3
+            const buffer = new Int16Array(samples);
+            for (let i = 0; i < buffer.length; i += 1152) {
+                const chunk = buffer.slice(i, i + 1152);
+                const mp3Chunk = mp3Encoder.encodeBuffer(chunk);
+                if (mp3Chunk.length > 0) {
+                    mp3Data.push(mp3Chunk);
+                }
+            }
+
+            // Finalizar codificación
+            const remaining = mp3Encoder.flush();
+            if (remaining.length > 0) {
+                mp3Data.push(remaining);
+            }
+
+            // Crear Blob MP3
+            const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
+            return mp3Blob;
+        }
+
+        // Descargar el archivo MP3
         downloadButton.addEventListener('click', () => {
             if (!audioBlob) {
                 alert('Primero genera el audio.');
                 return;
             }
 
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const a = document.createElement('a');
-            a.href = audioUrl;
-            a.download = 'audio_generado.wav';
-            a.click();
-            URL.revokeObjectURL(audioUrl);
+            convertWavToMp3(audioBlob).then(mp3Blob => {
+                const url = URL.createObjectURL(mp3Blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'audio_generado.mp3';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
         });
 
-        // Actualizar voces al cambiar el idioma
-        languageSelect.addEventListener('change', () => {
-            const voices = getVoices();
-            if (voices.length > 0) {
-                synth.cancel();
-                alert(`Idioma cambiado a ${voices[0].name}`);
+        // Subir el archivo a Firebase Storage
+        uploadToCloudButton.addEventListener('click', () => {
+            if (!audioBlob) {
+                alert('Primero genera el audio.');
+                return;
+            }
+
+            const fileName = `audio_${Date.now()}.mp3`;
+
+            convertWavToMp3(audioBlob).then(mp3Blob => {
+                const storageRef = ref(storage, `audios/${fileName}`);
+                uploadBytes(storageRef, mp3Blob).then(() => {
+                    getDownloadURL(storageRef).then(downloadUrl => {
+                        alert(`Tu archivo está disponible aquí: ${downloadUrl}`);
+                    });
+                });
+            });
+        });
+
+        // Cambiar entre modos claro y oscuro
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        themeToggle.addEventListener('click', () => {
+            if (body.classList.contains('light-mode')) {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                themeToggle.textContent = 'Cambiar a Modo Claro';
             } else {
-                alert('No se encontraron voces para este idioma.');
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
+                themeToggle.textContent = 'Cambiar a Modo Oscuro';
             }
         });
+
+        // Establecer el tema inicial basado en las preferencias del sistema
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            body.classList.add('dark-mode');
+            themeToggle.textContent = 'Cambiar a Modo Claro';
+        } else {
+            body.classList.add('light-mode');
+            themeToggle.textContent = 'Cambiar a Modo Oscuro';
+        }
     </script>
 </body>
 </html>
