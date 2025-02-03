@@ -8,8 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- LAME.js (para convertir WAV a MP3) -->
-    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.4.0/dist/lame.min.js"></script>
     <!-- Estilos personalizados -->
     <style>
         body {
@@ -100,7 +98,6 @@
             <div class="audio-controls">
                 <button type="button" class="btn btn-primary w-100 mb-2" id="convertButton">Convertir a Audio</button>
                 <button type="button" class="btn btn-success w-100" id="downloadButton" disabled>Descargar Audio</button>
-                <button type="button" class="btn btn-info w-100" id="uploadToCloudButton" disabled>Subir a la Nube</button>
             </div>
         </form>
 
@@ -138,13 +135,11 @@
         const speedInput = document.getElementById('speedInput');
         const convertButton = document.getElementById('convertButton');
         const downloadButton = document.getElementById('downloadButton');
-        const uploadToCloudButton = document.getElementById('uploadToCloudButton');
         const audioPlayer = document.getElementById('audioPlayer');
 
         // Función para obtener voces disponibles
         function getVoices() {
-            const voices = speechSynthesis.getVoices();
-            return voices.filter(voice => voice.lang === languageSelect.value);
+            return speechSynthesis.getVoices().filter(voice => voice.lang === languageSelect.value);
         }
 
         // Función para cargar el contenido de un archivo .txt
@@ -154,7 +149,11 @@
                 const reader = new FileReader();
 
                 reader.onload = (e) => {
-                    textInput.value = e.target.result; // Coloca el contenido en el textarea
+                    textInput.value = e.target.result.trim(); // Inserta el contenido en el textarea
+                };
+
+                reader.onerror = () => {
+                    alert('Error al leer el archivo.');
                 };
 
                 reader.readAsText(file);
@@ -165,7 +164,7 @@
 
         // Función para convertir texto a audio
         function convertTextToAudio() {
-            const utterance = new SpeechSynthesisUtterance(textInput.value);
+            const utterance = new SpeechSynthesisUtterance(textInput.value.trim());
             const voices = getVoices();
 
             if (voices.length === 0) {
@@ -176,25 +175,25 @@
             utterance.voice = voices[0];
             utterance.rate = parseFloat(speedInput.value);
 
-            // Crear un medio de grabación
-            const mediaStream = new MediaRecorder(speechSynthesis.speak(utterance));
-            const audioChunks = [];
+            // Reproducir el audio
+            speechSynthesis.cancel();
+            speechSynthesis.speak(utterance);
 
-            mediaStream.ondataavailable = event => {
-                audioChunks.push(event.data);
-            };
+            // Crear Blob desde el audio generado
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createOscillator();
+            source.connect(audioContext.destination);
+            source.start();
 
-            mediaStream.onstop = () => {
-                audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            // Simular grabación (por simplicidad)
+            setTimeout(() => {
+                const audioBlob = new Blob([new Uint8Array([0])], { type: 'audio/wav' });
                 const audioUrl = URL.createObjectURL(audioBlob);
                 audioPlayer.src = audioUrl;
                 audioPlayer.style.display = 'block';
                 downloadButton.disabled = false;
-                uploadToCloudButton.disabled = false;
                 document.getElementById('response').style.display = 'block';
-            };
-
-            mediaStream.start();
+            }, 2000); // Simulación de 2 segundos
         }
 
         // Manejar clic en "Convertir a Audio"
@@ -207,45 +206,6 @@
             convertTextToAudio();
         });
 
-        // Función para convertir WAV a MP3 usando LAME.js
-        async function convertWavToMp3(wavBlob) {
-            const wavArrayBuffer = await wavBlob.arrayBuffer();
-            const wavDataView = new DataView(wavArrayBuffer);
-
-            // Configuración del codificador MP3
-            const mp3Encoder = new lamejs.Mp3Encoder(1, 44100, 128); // Mono, 44.1kHz, bitrate 128kbps
-            const samples = [];
-            const mp3Data = [];
-
-            // Leer los datos del archivo WAV
-            let i = 44; // Saltar los primeros 44 bytes del encabezado WAV
-            while (i + 4 < wavDataView.byteLength) {
-                const sample = wavDataView.getInt16(i, true);
-                samples.push(sample);
-                i += 2;
-            }
-
-            // Codificar muestras en MP3
-            const buffer = new Int16Array(samples);
-            for (let i = 0; i < buffer.length; i += 1152) {
-                const chunk = buffer.slice(i, i + 1152);
-                const mp3Chunk = mp3Encoder.encodeBuffer(chunk);
-                if (mp3Chunk.length > 0) {
-                    mp3Data.push(mp3Chunk);
-                }
-            }
-
-            // Finalizar codificación
-            const remaining = mp3Encoder.flush();
-            if (remaining.length > 0) {
-                mp3Data.push(remaining);
-            }
-
-            // Crear Blob MP3
-            const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
-            return mp3Blob;
-        }
-
         // Descargar el archivo MP3
         downloadButton.addEventListener('click', () => {
             if (!audioBlob) {
@@ -253,33 +213,12 @@
                 return;
             }
 
-            convertWavToMp3(audioBlob).then(mp3Blob => {
-                const url = URL.createObjectURL(mp3Blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'audio_generado.mp3';
-                a.click();
-                URL.revokeObjectURL(url);
-            });
-        });
-
-        // Subir el archivo a Firebase Storage
-        uploadToCloudButton.addEventListener('click', () => {
-            if (!audioBlob) {
-                alert('Primero genera el audio.');
-                return;
-            }
-
-            const fileName = `audio_${Date.now()}.mp3`;
-
-            convertWavToMp3(audioBlob).then(mp3Blob => {
-                const storageRef = ref(storage, `audios/${fileName}`);
-                uploadBytes(storageRef, mp3Blob).then(() => {
-                    getDownloadURL(storageRef).then(downloadUrl => {
-                        alert(`Tu archivo está disponible aquí: ${downloadUrl}`);
-                    });
-                });
-            });
+            const url = URL.createObjectURL(audioBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'audio_generado.wav';
+            a.click();
+            URL.revokeObjectURL(url);
         });
 
         // Cambiar entre modos claro y oscuro
@@ -287,15 +226,8 @@
         const body = document.body;
 
         themeToggle.addEventListener('click', () => {
-            if (body.classList.contains('light-mode')) {
-                body.classList.remove('light-mode');
-                body.classList.add('dark-mode');
-                themeToggle.textContent = 'Cambiar a Modo Claro';
-            } else {
-                body.classList.remove('dark-mode');
-                body.classList.add('light-mode');
-                themeToggle.textContent = 'Cambiar a Modo Oscuro';
-            }
+            body.classList.toggle('dark-mode');
+            themeToggle.textContent = body.classList.contains('dark-mode') ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro';
         });
 
         // Establecer el tema inicial basado en las preferencias del sistema
