@@ -1,136 +1,94 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Texto a Voz</title>
+    <title>Mi Página Mejorada</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Estilos personalizados -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
         body {
-            font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(135deg, rgba(103,58,183,1) 0%, rgba(33,150,243,1) 100%);
-            text-align: center;
-            padding: 20px;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
         }
         .container {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            display: inline-block;
-            width: 60%;
             max-width: 600px;
-            color: black;
-        }
-        textarea, input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            font-size: 16px;
-            border-radius: 8px;
-            border: none;
-            outline: none;
-            background: rgba(255, 255, 255, 0.6);
-            box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        button {
-            background: linear-gradient(135deg, #ff7eb3, #ff5277);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            margin: 10px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
             border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
+        h1 {
+            text-align: center;
+            color: #343a40;
         }
-        button:hover:not(:disabled) {
-            background: linear-gradient(135deg, #ff5277, #ff7eb3);
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004999;
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <h1 style="color: #002366; text-align: center;">CONVERSOR DE TEXTO A VOZ DE DAMIAN</h1>
-        <textarea id="textInput" placeholder="Escribe o pega tu texto aquí..."></textarea>
-        <input type="file" id="fileInput" accept=".txt,.pdf">
-        <button id="convertTextButton">Convertir a Voz</button>
-        <button id="downloadButton" disabled>Descargar Audio</button>
-        <p id="textOutput"></p>
-        <audio id="audioPlayer" controls style="display: none; width: 100%; margin-top: 10px;"></audio>
+        <h1>Bienvenido a mi Página</h1>
+        <p>Esta es una página mejorada con diseño moderno y funcionalidades avanzadas.</p>
+
+        <!-- Formulario Interactivo -->
+        <form id="myForm">
+            <div class="mb-3">
+                <label for="name" class="form-label">Nombre:</label>
+                <input type="text" class="form-control" id="name" placeholder="Ingresa tu nombre" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Correo Electrónico:</label>
+                <input type="email" class="form-control" id="email" placeholder="Ingresa tu correo" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Enviar</button>
+        </form>
+
+        <!-- Sección de Respuesta -->
+        <div id="response" class="mt-4" style="display: none;">
+            <h4>Gracias por enviar tus datos, <span id="displayName"></span>!</h4>
+            <p>Tu correo electrónico es: <span id="displayEmail"></span>.</p>
+        </div>
     </div>
+
+    <!-- Bootstrap JS y Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script personalizado -->
     <script>
-        let textContent = '';
-        let audioBlob;
-        
-        document.getElementById('convertTextButton').addEventListener('click', convertToSpeech);
-        document.getElementById('fileInput').addEventListener('change', handleFile);
-        document.getElementById('downloadButton').addEventListener('click', downloadAudio);
+        // Manejar el envío del formulario
+        document.getElementById('myForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevenir el envío predeterminado
 
-        function handleFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                textContent = e.target.result;
-                document.getElementById('textOutput').textContent = textContent;
-            };
-            reader.readAsText(file);
-        }
+            // Obtener valores del formulario
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
 
-        function convertToSpeech() {
-            const text = document.getElementById('textInput').value.trim() || textContent;
-            if (!text) return;
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            speechSynthesis.speak(utterance);
-            
-            generateAudioBlob(text);
-        }
+            if (name && email) {
+                // Mostrar la sección de respuesta
+                document.getElementById('displayName').textContent = name;
+                document.getElementById('displayEmail').textContent = email;
+                document.getElementById('response').style.display = 'block';
 
-        function generateAudioBlob(text) {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const mediaStreamDestination = audioContext.createMediaStreamDestination();
-            const mediaRecorder = new MediaRecorder(mediaStreamDestination.stream);
-            const audioChunks = [];
-            
-            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-            mediaRecorder.onstop = () => {
-                audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                document.getElementById('downloadButton').disabled = false;
-                document.getElementById('audioPlayer').src = URL.createObjectURL(audioBlob);
-                document.getElementById('audioPlayer').style.display = 'block';
-            };
-            
-            mediaRecorder.start();
-            speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-            setTimeout(() => mediaRecorder.stop(), text.length * 100);
-        }
-
-        function downloadAudio() {
-            if (!audioBlob) return;
-            const url = URL.createObjectURL(audioBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'audio.mp3';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
+                // Limpiar el formulario
+                document.getElementById('myForm').reset();
+            } else {
+                alert('Por favor, completa todos los campos.');
+            }
+        });
     </script>
+
 </body>
 </html>
