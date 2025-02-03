@@ -119,17 +119,24 @@
                 const utterance = new SpeechSynthesisUtterance(textContent);
                 const voices = speechSynthesis.getVoices();
                 utterance.voice = voices.find(voice => voice.lang.includes('es')) || voices[0];
+                
+                const audioContext = new AudioContext();
+                const destination = audioContext.createMediaStreamDestination();
+                const mediaRecorder = new MediaRecorder(destination.stream);
+                const audioChunks = [];
+                
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    document.getElementById('downloadButton').disabled = false;
+                    document.getElementById('audioPlayer').src = URL.createObjectURL(audioBlob);
+                    document.getElementById('audioPlayer').style.display = 'block';
+                };
+                
+                mediaRecorder.start();
                 speechSynthesis.speak(utterance);
-                generateAudioBlob(utterance.text);
+                setTimeout(() => mediaRecorder.stop(), utterance.text.length * 100);
             }
-        }
-
-        function generateAudioBlob(text) {
-            const blob = new Blob([text], { type: 'audio/wav' });
-            audioBlob = blob;
-            document.getElementById('downloadButton').disabled = false;
-            document.getElementById('audioPlayer').src = URL.createObjectURL(audioBlob);
-            document.getElementById('audioPlayer').style.display = 'block';
         }
 
         function downloadAudio() {
@@ -137,7 +144,7 @@
             const url = URL.createObjectURL(audioBlob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'audio.wav';
+            a.download = 'audio.mp3';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
