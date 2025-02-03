@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -60,35 +60,6 @@
             transform: scale(1.05);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
-        .chat-container {
-            width: 100%;
-            max-width: 600px;
-            height: 300px;
-            overflow-y: auto;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 20px;
-            text-align: left;
-        }
-        .chat-message {
-            padding: 10px;
-            margin: 5px;
-            border-radius: 8px;
-            max-width: 80%;
-        }
-        .user-message {
-            background: #007bff;
-            color: white;
-            text-align: right;
-            margin-left: auto;
-        }
-        .bot-message {
-            background: #f1f1f1;
-            color: black;
-            text-align: left;
-            margin-right: auto;
-        }
     </style>
 </head>
 <body>
@@ -100,16 +71,14 @@
         <button id="downloadButton" disabled>Descargar Audio</button>
         <p id="textOutput"></p>
         <audio id="audioPlayer" controls style="display: none; width: 100%; margin-top: 10px;"></audio>
-        <h2>Chat con DeepSeek</h2>
-        <div class="chat-container" id="chatContainer"></div>
-        <textarea id="deepSeekInput" placeholder="Escribe tu consulta aquí..."></textarea>
-        <button id="deepSeekButton">Enviar</button>
     </div>
     <script>
+        let textContent = '';
+        let audioBlob;
+        
         document.getElementById('convertTextButton').addEventListener('click', convertToSpeech);
         document.getElementById('fileInput').addEventListener('change', handleFile);
         document.getElementById('downloadButton').addEventListener('click', downloadAudio);
-        document.getElementById('deepSeekButton').addEventListener('click', consultDeepSeek);
 
         function handleFile(event) {
             const file = event.target.files[0];
@@ -124,39 +93,43 @@
         }
 
         function convertToSpeech() {
-            const text = document.getElementById('textInput').value.trim();
+            const text = document.getElementById('textInput').value.trim() || textContent;
             if (!text) return;
             
             const utterance = new SpeechSynthesisUtterance(text);
             speechSynthesis.speak(utterance);
+            
+            generateAudioBlob(text);
         }
 
-        function consultDeepSeek() {
-            const query = document.getElementById('deepSeekInput').value;
-            if (!query) return;
+        function generateAudioBlob(text) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const mediaStreamDestination = audioContext.createMediaStreamDestination();
+            const mediaRecorder = new MediaRecorder(mediaStreamDestination.stream);
+            const audioChunks = [];
             
-            const chatContainer = document.getElementById('chatContainer');
-            const userMessage = `<div class='chat-message user-message'>${query}</div>`;
-            chatContainer.innerHTML += userMessage;
+            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+            mediaRecorder.onstop = () => {
+                audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                document.getElementById('downloadButton').disabled = false;
+                document.getElementById('audioPlayer').src = URL.createObjectURL(audioBlob);
+                document.getElementById('audioPlayer').style.display = 'block';
+            };
             
-            fetch('https://api.deepseek.com/query', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer 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'
-                },
-                body: JSON.stringify({ query: query })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const botMessage = `<div class='chat-message bot-message'>${data.response || 'No se recibió respuesta'}</div>`;
-                chatContainer.innerHTML += botMessage;
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            })
-            .catch(error => {
-                console.error('Error en la consulta:', error);
-                chatContainer.innerHTML += `<div class='chat-message bot-message'>Error en la consulta</div>`;
-            });
+            mediaRecorder.start();
+            speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+            setTimeout(() => mediaRecorder.stop(), text.length * 100);
+        }
+
+        function downloadAudio() {
+            if (!audioBlob) return;
+            const url = URL.createObjectURL(audioBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'audio.mp3';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
     </script>
 </body>
