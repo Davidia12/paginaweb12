@@ -6,43 +6,47 @@
     <title>Texto a Voz</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #eef2f3;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #2c3e50, #4ca1af);
             text-align: center;
             padding: 20px;
+            color: white;
         }
         .container {
             background: white;
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
             display: inline-block;
-            width: 60%;
+            width: 50%;
+            color: black;
         }
         textarea {
-            width: 80%;
-            height: 100px;
+            width: 100%;
+            height: 120px;
             margin: 10px 0;
             padding: 10px;
             font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
         }
         button {
-            background-color: #28a745;
+            background: #007BFF;
             color: white;
             border: none;
             padding: 12px 20px;
             margin: 10px;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
             transition: background 0.3s ease;
         }
         button:disabled {
-            background-color: #ccc;
+            background: #ccc;
             cursor: not-allowed;
         }
         button:hover:not(:disabled) {
-            background-color: #218838;
+            background: #0056b3;
         }
     </style>
 </head>
@@ -53,13 +57,16 @@
         <button id="convertTextButton">Convertir a Voz</button>
         <input type="file" id="fileInput" accept=".txt,.pdf">
         <button id="uploadButton">Cargar Archivo</button>
-        <button id="convertFileButton" disabled>Convertir a Voz</button>
-        <button id="downloadButton" disabled>Descargar .mp3</button>
+        <button id="convertFileButton" disabled>Convertir Archivo a Voz</button>
+        <button id="downloadButton" disabled>Descargar Audio</button>
         <p id="textOutput"></p>
         <audio id="audioPlayer" controls style="display: none;"></audio>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
+        let textContent = '';
+        let audioBlob;
+
         document.getElementById('uploadButton').addEventListener('click', () => {
             document.getElementById('fileInput').click();
         });
@@ -69,15 +76,11 @@
         document.getElementById('convertTextButton').addEventListener('click', convertTextToSpeech);
         document.getElementById('downloadButton').addEventListener('click', downloadAudio);
 
-        let textContent = '';
-        let audioBlob;
-
         function handleFile(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-
             if (file.type === 'text/plain') {
                 reader.onload = (e) => {
                     textContent = e.target.result;
@@ -114,23 +117,17 @@
                 const utterance = new SpeechSynthesisUtterance(textContent);
                 const voices = speechSynthesis.getVoices();
                 utterance.voice = voices.find(voice => voice.lang.includes('es')) || voices[0];
-                
-                const mediaStream = new MediaStream();
-                const mediaRecorder = new MediaRecorder(mediaStream);
-                let audioChunks = [];
-                
-                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-                mediaRecorder.onstop = () => {
-                    audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                    document.getElementById('downloadButton').disabled = false;
-                    document.getElementById('audioPlayer').src = URL.createObjectURL(audioBlob);
-                    document.getElementById('audioPlayer').style.display = 'block';
-                };
-                
-                mediaRecorder.start();
                 speechSynthesis.speak(utterance);
-                setTimeout(() => mediaRecorder.stop(), utterance.text.length * 100);
+                generateAudioBlob(utterance.text);
             }
+        }
+
+        function generateAudioBlob(text) {
+            const blob = new Blob([text], { type: 'audio/wav' });
+            audioBlob = blob;
+            document.getElementById('downloadButton').disabled = false;
+            document.getElementById('audioPlayer').src = URL.createObjectURL(audioBlob);
+            document.getElementById('audioPlayer').style.display = 'block';
         }
 
         function downloadAudio() {
@@ -138,7 +135,7 @@
             const url = URL.createObjectURL(audioBlob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'audio.mp3';
+            a.download = 'audio.wav';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
