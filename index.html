@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Página Mejorada</title>
+    <title>Conversor de Texto a Audio</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
@@ -36,31 +36,57 @@
             background-color: #0056b3;
             border-color: #004999;
         }
+        .voice-settings {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .voice-settings label {
+            margin-right: 10px;
+        }
+        .audio-controls {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Bienvenido a mi Página</h1>
-        <p>Esta es una página mejorada con diseño moderno y funcionalidades avanzadas.</p>
+        <h1>Conversor de Texto a Audio</h1>
+        <p>Escribe tu texto y conviértelo en un archivo de audio que puedes descargar.</p>
 
         <!-- Formulario Interactivo -->
-        <form id="myForm">
+        <form id="textToAudioForm">
             <div class="mb-3">
-                <label for="name" class="form-label">Nombre:</label>
-                <input type="text" class="form-control" id="name" placeholder="Ingresa tu nombre" required>
+                <label for="textInput" class="form-label">Texto:</label>
+                <textarea class="form-control" id="textInput" rows="5" placeholder="Ingresa tu texto aquí..." required></textarea>
             </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Correo Electrónico:</label>
-                <input type="email" class="form-control" id="email" placeholder="Ingresa tu correo" required>
+
+            <!-- Configuración de Voz -->
+            <div class="voice-settings">
+                <label for="languageSelect">Idioma:</label>
+                <select class="form-select" id="languageSelect" style="width: 200px;">
+                    <option value="es-ES">Español (España)</option>
+                    <option value="en-US">Inglés (Estados Unidos)</option>
+                    <option value="fr-FR">Francés (Francia)</option>
+                </select>
+
+                <label for="speedInput">Velocidad:</label>
+                <input type="range" class="form-range" id="speedInput" min="0.5" max="2" step="0.1" value="1">
             </div>
-            <button type="submit" class="btn btn-primary w-100">Enviar</button>
+
+            <!-- Botones de Acción -->
+            <div class="audio-controls">
+                <button type="button" class="btn btn-primary w-100 mb-2" id="convertButton">Convertir a Audio</button>
+                <button type="button" class="btn btn-success w-100" id="downloadButton" disabled>Descargar Audio</button>
+            </div>
         </form>
 
         <!-- Sección de Respuesta -->
         <div id="response" class="mt-4" style="display: none;">
-            <h4>Gracias por enviar tus datos, <span id="displayName"></span>!</h4>
-            <p>Tu correo electrónico es: <span id="displayEmail"></span>.</p>
+            <h4>Audio Generado</h4>
+            <audio controls id="audioPlayer"></audio>
         </div>
     </div>
 
@@ -68,27 +94,91 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Script personalizado -->
     <script>
-        // Manejar el envío del formulario
-        document.getElementById('myForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevenir el envío predeterminado
+        const synth = window.speechSynthesis;
+        let audioBlob = null;
 
-            // Obtener valores del formulario
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
+        // Obtener elementos del DOM
+        const textInput = document.getElementById('textInput');
+        const languageSelect = document.getElementById('languageSelect');
+        const speedInput = document.getElementById('speedInput');
+        const convertButton = document.getElementById('convertButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const audioPlayer = document.getElementById('audioPlayer');
 
-            if (name && email) {
-                // Mostrar la sección de respuesta
-                document.getElementById('displayName').textContent = name;
-                document.getElementById('displayEmail').textContent = email;
+        // Función para obtener voces disponibles
+        function getVoices() {
+            const voices = synth.getVoices();
+            return voices.filter(voice => voice.lang === languageSelect.value);
+        }
+
+        // Función para convertir texto a audio
+        function convertTextToAudio() {
+            const utterance = new SpeechSynthesisUtterance(textInput.value);
+            const voices = getVoices();
+
+            if (voices.length === 0) {
+                alert('No se encontraron voces disponibles.');
+                return;
+            }
+
+            utterance.voice = voices[0];
+            utterance.rate = parseFloat(speedInput.value);
+
+            // Crear un medio de grabación
+            const mediaStream = new MediaRecorder(synth.speak(utterance));
+            const audioChunks = [];
+
+            mediaStream.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaStream.onstop = () => {
+                audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                audioPlayer.src = audioUrl;
+                audioPlayer.style.display = 'block';
+                downloadButton.disabled = false;
                 document.getElementById('response').style.display = 'block';
+            };
 
-                // Limpiar el formulario
-                document.getElementById('myForm').reset();
+            mediaStream.start();
+        }
+
+        // Manejar clic en "Convertir a Audio"
+        convertButton.addEventListener('click', () => {
+            if (textInput.value.trim() === '') {
+                alert('Por favor, ingresa un texto.');
+                return;
+            }
+
+            convertTextToAudio();
+        });
+
+        // Manejar clic en "Descargar Audio"
+        downloadButton.addEventListener('click', () => {
+            if (!audioBlob) {
+                alert('Primero genera el audio.');
+                return;
+            }
+
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const a = document.createElement('a');
+            a.href = audioUrl;
+            a.download = 'audio_generado.wav';
+            a.click();
+            URL.revokeObjectURL(audioUrl);
+        });
+
+        // Actualizar voces al cambiar el idioma
+        languageSelect.addEventListener('change', () => {
+            const voices = getVoices();
+            if (voices.length > 0) {
+                synth.cancel();
+                alert(`Idioma cambiado a ${voices[0].name}`);
             } else {
-                alert('Por favor, completa todos los campos.');
+                alert('No se encontraron voces para este idioma.');
             }
         });
     </script>
-
 </body>
 </html>
