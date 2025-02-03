@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Texto a Voz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Convertir Texto a Voz</h1>
+        <input type="file" id="fileInput" accept=".txt,.pdf">
+        <button id="convertButton">Convertir a Voz</button>
+        <button id="downloadButton" disabled>Descargar .mp3</button>
+        <p id="textOutput"></p>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        document.getElementById('fileInput').addEventListener('change', handleFile);
+        document.getElementById('convertButton').addEventListener('click', convertToSpeech);
+        document.getElementById('downloadButton').addEventListener('click', downloadAudio);
+
+        let textContent = '';
+        let audioChunks = [];
+        let mediaRecorder;
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                if (file.type === 'text/plain') {
+                    reader.onload = (e) => {
+                        textContent = e.target.result;
+                        document.getElementById('textOutput').textContent = textContent;
+                    };
+                    reader.readAsText(file);
+                } else if (file.type === 'application/pdf') {
+                    const fileReader = new FileReader();
+                    fileReader.onload = function () {
+                        const typedarray = new Uint8Array(this.result);
+                        pdfjsLib.getDocument(typedarray).promise.then((pdf) => {
+                            pdf.getPage(1).then((page) => {
+                                page.getTextContent().then((text) => {
+                                    textContent = text.items.map(item => item.str).join(' ');
+                                    document.getElementById('textOutput').textContent = textContent;
+                                });
+                            });
+                        });
+                    };
+                    fileReader.readAsArrayBuffer(file);
+                }
+            }
+        }
+
+        function convertToSpeech() {
+            if (textContent) {
+                const utterance = new SpeechSynthesisUtterance(textContent);
+                speechSynthesis.speak(utterance);
+                startRecording();
+            }
+        }
+
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                mediaRecorder.onstop = saveRecording;
+                mediaRecorder.start();
+            });
+        }
+
+        function saveRecording() {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            document.getElementById('downloadButton').disabled = false;
+            document.getElementById('downloadButton').dataset.url = audioUrl;
+        }
+
+        function downloadAudio() {
+            const url = document.getElementById('downloadButton').dataset.url;
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'audio.mp3';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>
