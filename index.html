@@ -7,25 +7,27 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #eef2f3;
             text-align: center;
             padding: 20px;
         }
         .container {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
             display: inline-block;
+            width: 60%;
         }
         button {
-            background-color: #007BFF;
+            background-color: #28a745;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 20px;
             margin: 10px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
             transition: background 0.3s ease;
         }
         button:disabled {
@@ -33,7 +35,7 @@
             cursor: not-allowed;
         }
         button:hover:not(:disabled) {
-            background-color: #0056b3;
+            background-color: #218838;
         }
     </style>
 </head>
@@ -41,14 +43,18 @@
     <div class="container">
         <h1>Convertir Texto a Voz</h1>
         <input type="file" id="fileInput" accept=".txt,.pdf">
-        <button id="convertButton">Convertir a Voz</button>
+        <button id="startFile">Iniciar Carga</button>
+        <button id="convertButton">Iniciar Conversión</button>
+        <button id="stopVoice">Detener Voz</button>
         <button id="downloadButton" disabled>Descargar .mp3</button>
         <p id="textOutput"></p>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
+        document.getElementById('startFile').addEventListener('click', () => document.getElementById('fileInput').click());
         document.getElementById('fileInput').addEventListener('change', handleFile);
         document.getElementById('convertButton').addEventListener('click', convertToSpeech);
+        document.getElementById('stopVoice').addEventListener('click', () => speechSynthesis.cancel());
         document.getElementById('downloadButton').addEventListener('click', downloadAudio);
 
         let textContent = '';
@@ -86,6 +92,8 @@
         function convertToSpeech() {
             if (textContent) {
                 const utterance = new SpeechSynthesisUtterance(textContent);
+                const voices = speechSynthesis.getVoices();
+                utterance.voice = voices.find(voice => voice.lang.includes('es') && voice.name.includes('Google')) || voices[0];
                 speechSynthesis.speak(utterance);
                 startRecording();
             }
