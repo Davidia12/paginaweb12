@@ -59,20 +59,6 @@
             transform: scale(1.05);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
-        .progress-bar {
-            width: 100%;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.4);
-            margin-top: 10px;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .progress-bar div {
-            height: 5px;
-            width: 0;
-            background: #ff7eb3;
-            transition: width 0.5s ease-in-out;
-        }
     </style>
 </head>
 <body>
@@ -83,7 +69,6 @@
         <input type="file" id="fileInput" accept=".txt,.pdf">
         <button id="uploadButton">Cargar Archivo</button>
         <button id="convertFileButton" disabled>Convertir Archivo a Voz</button>
-        <div class="progress-bar"><div id="progress"></div></div>
         <button id="downloadButton" disabled>Descargar Audio</button>
         <p id="textOutput"></p>
         <audio id="audioPlayer" controls style="display: none; width: 100%; margin-top: 10px;"></audio>
@@ -117,14 +102,33 @@
             const userText = document.getElementById('textInput').value;
             if (userText.trim() === '') return;
             textContent = userText;
-            document.getElementById('progress').style.width = '0%';
             convertToSpeech();
         }
 
         function convertToSpeech() {
             if (textContent) {
                 const utterance = new SpeechSynthesisUtterance(textContent);
+                const voices = speechSynthesis.getVoices();
+                utterance.voice = voices.find(voice => voice.lang.includes('es')) || voices[0];
+                
+                const audioContext = new AudioContext();
+                const destination = audioContext.createMediaStreamDestination();
+                const mediaRecorder = new MediaRecorder(destination.stream);
+                const audioChunks = [];
+                
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    document.getElementById('downloadButton').disabled = false;
+                    document.getElementById('audioPlayer').src = URL.createObjectURL(audioBlob);
+                    document.getElementById('audioPlayer').style.display = 'block';
+                };
+                
+                mediaRecorder.start();
                 speechSynthesis.speak(utterance);
+                utterance.onend = () => {
+                    mediaRecorder.stop();
+                };
             }
         }
 
