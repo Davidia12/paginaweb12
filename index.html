@@ -7,13 +7,18 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, rgba(103,58,183,1) 0%, rgba(33,150,243,1) 100%);
             text-align: center;
             padding: 20px;
             color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
         }
         .container {
-            background: white;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -28,11 +33,13 @@
             margin: 10px 0;
             font-size: 16px;
             border-radius: 8px;
-            border: 1px solid #ccc;
+            border: none;
             outline: none;
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         button {
-            background: #ff7eb3;
+            background: linear-gradient(135deg, #ff7eb3, #ff5277);
             color: white;
             border: none;
             padding: 12px 20px;
@@ -40,15 +47,31 @@
             border-radius: 10px;
             cursor: pointer;
             font-size: 16px;
-            transition: background 0.3s ease, transform 0.2s;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
         }
         button:hover:not(:disabled) {
-            background: #ff5277;
+            background: linear-gradient(135deg, #ff5277, #ff7eb3);
             transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.4);
+            margin-top: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar div {
+            height: 5px;
+            width: 0;
+            background: #ff7eb3;
+            transition: width 0.5s ease-in-out;
         }
     </style>
 </head>
@@ -57,60 +80,23 @@
         <h1>Convertir Texto a Voz</h1>
         <textarea id="textInput" placeholder="Escribe o pega tu texto aquí..."></textarea>
         <button id="convertTextButton">Convertir a Voz</button>
-        <input type="file" id="fileInput" accept=".txt,.pdf">
-        <button id="uploadButton">Cargar Archivo</button>
-        <button id="convertFileButton" disabled>Convertir Archivo a Voz</button>
+        <div class="progress-bar"><div id="progress"></div></div>
         <button id="downloadButton" disabled>Descargar Audio</button>
         <p id="textOutput"></p>
         <audio id="audioPlayer" controls style="display: none; width: 100%; margin-top: 10px;"></audio>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
         let textContent = '';
         let audioBlob;
-
-        document.getElementById('uploadButton').addEventListener('click', () => {
-            document.getElementById('fileInput').click();
-        });
-
-        document.getElementById('fileInput').addEventListener('change', handleFile);
-        document.getElementById('convertFileButton').addEventListener('click', convertToSpeech);
+        
         document.getElementById('convertTextButton').addEventListener('click', convertTextToSpeech);
         document.getElementById('downloadButton').addEventListener('click', downloadAudio);
-
-        function handleFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            if (file.type === 'text/plain') {
-                reader.onload = (e) => {
-                    textContent = e.target.result;
-                    document.getElementById('textOutput').textContent = textContent;
-                    document.getElementById('convertFileButton').disabled = false;
-                };
-                reader.readAsText(file);
-            } else if (file.type === 'application/pdf') {
-                reader.onload = function () {
-                    const typedarray = new Uint8Array(this.result);
-                    pdfjsLib.getDocument(typedarray).promise.then((pdf) => {
-                        pdf.getPage(1).then((page) => {
-                            page.getTextContent().then((text) => {
-                                textContent = text.items.map(item => item.str).join(' ');
-                                document.getElementById('textOutput').textContent = textContent;
-                                document.getElementById('convertFileButton').disabled = false;
-                            });
-                        });
-                    });
-                };
-                reader.readAsArrayBuffer(file);
-            }
-        }
 
         function convertTextToSpeech() {
             const userText = document.getElementById('textInput').value;
             if (userText.trim() === '') return;
             textContent = userText;
+            document.getElementById('progress').style.width = '0%';
             convertToSpeech();
         }
 
@@ -122,21 +108,39 @@
                 
                 const audioContext = new AudioContext();
                 const destination = audioContext.createMediaStreamDestination();
-                const mediaRecorder = new MediaRecorder(destination.stream);
+                const mediaRecorder = new MediaRecorder(destination.stream, { mimeType: 'audio/webm' });
                 const audioChunks = [];
                 
                 mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-                mediaRecorder.onstop = () => {
-                    audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                mediaRecorder.onstop = async () => {
+                    const webmBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const mp3Blob = await convertWebmToMp3(webmBlob);
+                    
+                    audioBlob = mp3Blob;
                     document.getElementById('downloadButton').disabled = false;
-                    document.getElementById('audioPlayer').src = URL.createObjectURL(audioBlob);
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById('audioPlayer').src = audioUrl;
                     document.getElementById('audioPlayer').style.display = 'block';
+                    document.getElementById('progress').style.width = '100%';
                 };
                 
                 mediaRecorder.start();
                 speechSynthesis.speak(utterance);
-                setTimeout(() => mediaRecorder.stop(), utterance.text.length * 100);
+                utterance.onend = () => {
+                    mediaRecorder.stop();
+                };
             }
+        }
+
+        async function convertWebmToMp3(webmBlob) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const audioBuffer = reader.result;
+                    resolve(new Blob([audioBuffer], { type: 'audio/mp3' }));
+                };
+                reader.readAsArrayBuffer(webmBlob);
+            });
         }
 
         function downloadAudio() {
