@@ -112,17 +112,25 @@
         function convertToSpeech() {
             if (textContent) {
                 const utterance = new SpeechSynthesisUtterance(textContent);
+                const voices = speechSynthesis.getVoices();
+                utterance.voice = voices.find(voice => voice.lang.includes('es')) || voices[0];
+                
+                const mediaStream = new MediaStream();
+                const mediaRecorder = new MediaRecorder(mediaStream);
+                let audioChunks = [];
+                
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    document.getElementById('downloadButton').disabled = false;
+                    document.getElementById('audioPlayer').src = URL.createObjectURL(audioBlob);
+                    document.getElementById('audioPlayer').style.display = 'block';
+                };
+                
+                mediaRecorder.start();
                 speechSynthesis.speak(utterance);
-                generateAudio();
+                setTimeout(() => mediaRecorder.stop(), utterance.text.length * 100);
             }
-        }
-
-        function generateAudio() {
-            const blob = new Blob([textContent], { type: 'audio/mp3' });
-            audioBlob = blob;
-            document.getElementById('downloadButton').disabled = false;
-            document.getElementById('audioPlayer').src = URL.createObjectURL(audioBlob);
-            document.getElementById('audioPlayer').style.display = 'block';
         }
 
         function downloadAudio() {
