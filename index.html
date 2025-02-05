@@ -3,197 +3,152 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Página Web Moderna</title>
-  <style>
-    /* Reset básico */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      line-height: 1.6;
-      color: #333;
-    }
-    
-    /* Contenedor central */
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 0 20px;
-    }
-    
-    /* Encabezado */
-    header {
-      background: #333;
-      color: #fff;
-      padding: 1rem 0;
-      text-align: center;
-    }
-    
-    /* Navegación */
-    nav {
-      background: #444;
-    }
-    
-    nav ul {
-      list-style: none;
-      display: flex;
-      justify-content: center;
-      padding: 0.5rem 0;
-    }
-    
-    nav ul li {
-      margin: 0 1rem;
-    }
-    
-    nav ul li a {
-      color: #fff;
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-    
-    nav ul li a:hover {
-      color: #ffd700;
-    }
-    
-    /* Secciones */
-    section {
-      padding: 2rem 0;
-      background: #fff;
-      margin-bottom: 1rem;
-    }
-    
-    section:nth-of-type(even) {
-      background: #e9e9e9;
-    }
-    
-    section h2 {
-      margin-bottom: 1rem;
-      text-align: center;
-    }
-    
-    /* Formulario de contacto */
-    form {
-      max-width: 600px;
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    form label {
-      margin: 0.5rem 0 0.2rem;
-    }
-    
-    form input,
-    form textarea {
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    
-    form button {
-      margin-top: 1rem;
-      padding: 0.7rem;
-      border: none;
-      background: #333;
-      color: #fff;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    
-    form button:hover {
-      background: #555;
-    }
-    
-    /* Pie de página */
-    footer {
-      background: #333;
-      color: #fff;
-      text-align: center;
-      padding: 1rem 0;
-    }
-  </style>
+  <!-- Meta descripción para SEO -->
+  <meta name="description" content="El mejor blog moderno, rápido, escalable y optimizado.">
+  <!-- Título -->
+  <title>Blog Moderno Independiente</title>
+  <!-- Enlaces a hojas de estilo (puedes incluir frameworks CSS o tu propio CSS) -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Ejemplo de favicon -->
+  <link rel="icon" href="favicon.ico">
+  
+  <!-- Marcado estructurado para SEO (ejemplo con JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Blog",
+    "name": "Blog Moderno Independiente",
+    "description": "El mejor blog moderno, rápido, escalable y optimizado.",
+    "url": "https://www.tublog.com"
+  }
+  </script>
 </head>
 <body>
-  <!-- Encabezado -->
+  <!-- Cabecera principal con navegación -->
   <header>
-    <div class="container">
-      <h1>Bienvenido a Mi Página Web Moderna</h1>
-    </div>
+    <nav class="navbar">
+      <div class="container">
+        <a href="/" class="logo">MiBlog</a>
+        <ul class="nav-menu">
+          <li><a href="/" title="Inicio">Inicio</a></li>
+          <li><a href="/publicaciones" title="Publicaciones">Publicaciones</a></li>
+          <li><a href="/acerca" title="Acerca de">Acerca de</a></li>
+          <li><a href="/contacto" title="Contacto">Contacto</a></li>
+          <!-- Acceso al panel de administración (acceso restringido) -->
+          <li><a href="/admin" title="Panel de Administración">Admin</a></li>
+        </ul>
+      </div>
+    </nav>
   </header>
   
-  <!-- Navegación -->
-  <nav>
-    <div class="container">
-      <ul>
-        <li><a href="#inicio">Inicio</a></li>
-        <li><a href="#servicios">Servicios</a></li>
-        <li><a href="#acerca">Acerca de</a></li>
-        <li><a href="#contacto">Contacto</a></li>
-      </ul>
-    </div>
-  </nav>
+  <!-- Sección principal del blog -->
+  <main class="container">
+    <!-- Sección Hero para destacar contenido o mensaje principal -->
+    <section class="hero" aria-label="Destacado">
+      <div class="hero-content">
+        <h1>Bienvenido al Blog Moderno</h1>
+        <p>Contenido optimizado, escalable y listo para el futuro.</p>
+        <!-- Botón para ver las últimas publicaciones -->
+        <a href="/publicaciones" class="btn btn-primary">Ver Publicaciones</a>
+      </div>
+    </section>
+    
+    <!-- Área de contenido principal (publicaciones) -->
+    <section class="posts" aria-label="Publicaciones">
+      <!-- Cada artículo se marca semánticamente con <article> -->
+      <article class="post">
+        <header>
+          <h2 class="post-title"><a href="/publicacion/ejemplo">Título de la Publicación Ejemplo</a></h2>
+          <p class="post-meta">Publicado el <time datetime="2025-02-05">05 de febrero de 2025</time> por <a href="/autor/jdoe">J. Doe</a></p>
+        </header>
+        <section class="post-excerpt">
+          <p>Este es el extracto o resumen de la publicación. Aquí se introduce el contenido de forma breve y atractiva.</p>
+        </section>
+        <footer>
+          <a href="/publicacion/ejemplo" class="btn btn-secondary">Leer Más</a>
+        </footer>
+      </article>
+      
+      <!-- Más artículos se pueden generar dinámicamente -->
+      
+    </section>
+    
+    <!-- Barra lateral (sidebar) con widgets: búsqueda, categorías, redes sociales, etc. -->
+    <aside class="sidebar" aria-label="Barra lateral">
+      <!-- Widget de búsqueda -->
+      <section class="widget search-widget">
+        <h3>Buscar en el blog</h3>
+        <form action="/buscar" method="get">
+          <label for="search" class="sr-only">Buscar</label>
+          <input type="text" id="search" name="q" placeholder="Buscar..." required>
+          <button type="submit">Buscar</button>
+        </form>
+      </section>
+      
+      <!-- Widget de categorías -->
+      <section class="widget categories-widget">
+        <h3>Categorías</h3>
+        <ul>
+          <li><a href="/categoria/tecnologia">Tecnología</a></li>
+          <li><a href="/categoria/programacion">Programación</a></li>
+          <li><a href="/categoria/diseno">Diseño</a></li>
+          <!-- Más categorías -->
+        </ul>
+      </section>
+      
+      <!-- Widget de redes sociales -->
+      <section class="widget social-widget">
+        <h3>Síguenos</h3>
+        <ul class="social-links">
+          <li><a href="https://facebook.com/tublog" target="_blank" rel="noopener" title="Facebook">Facebook</a></li>
+          <li><a href="https://twitter.com/tublog" target="_blank" rel="noopener" title="Twitter">Twitter</a></li>
+          <li><a href="https://instagram.com/tublog" target="_blank" rel="noopener" title="Instagram">Instagram</a></li>
+          <!-- Más redes sociales -->
+        </ul>
+      </section>
+      
+      <!-- Placeholder para herramientas de email marketing -->
+      <section class="widget newsletter-widget">
+        <h3>Suscríbete</h3>
+        <p>Recibe nuestras últimas publicaciones directamente en tu correo.</p>
+        <form action="/suscripcion" method="post">
+          <label for="email-news" class="sr-only">Correo electrónico</label>
+          <input type="email" id="email-news" name="email" placeholder="tuemail@ejemplo.com" required>
+          <button type="submit">Suscribirme</button>
+        </form>
+      </section>
+    </aside>
+  </main>
   
-  <!-- Sección: Inicio -->
-  <section id="inicio">
+  <!-- Pie de página con información adicional y enlaces legales -->
+  <footer class="footer">
     <div class="container">
-      <h2>Inicio</h2>
-      <p>Esta es una página web moderna y completa desarrollada con HTML5 y CSS3. Aquí podrás encontrar información sobre nuestros servicios y conocer más sobre nosotros.</p>
-    </div>
-  </section>
-  
-  <!-- Sección: Servicios -->
-  <section id="servicios">
-    <div class="container">
-      <h2>Servicios</h2>
-      <p>Ofrecemos servicios de diseño web, desarrollo de aplicaciones y optimización SEO, adaptándonos a las necesidades de cada cliente y buscando siempre la excelencia en nuestros proyectos.</p>
-    </div>
-  </section>
-  
-  <!-- Sección: Acerca de -->
-  <section id="acerca">
-    <div class="container">
-      <h2>Acerca de</h2>
-      <p>Somos un equipo comprometido con la innovación y la calidad. Nuestra misión es brindar soluciones digitales que impulsen el crecimiento de nuestros clientes en el entorno online.</p>
-    </div>
-  </section>
-  
-  <!-- Sección: Contacto -->
-  <section id="contacto">
-    <div class="container">
-      <h2>Contacto</h2>
-      <form action="#" method="post">
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" name="nombre" required>
-        
-        <label for="email">Correo Electrónico:</label>
-        <input type="email" id="email" name="email" required>
-        
-        <label for="mensaje">Mensaje:</label>
-        <textarea id="mensaje" name="mensaje" rows="5" required></textarea>
-        
-        <button type="submit">Enviar</button>
-      </form>
-    </div>
-  </section>
-  
-  <!-- Pie de página -->
-  <footer>
-    <div class="container">
-      <p>&copy; 2025 Mi Página Web Moderna. Todos los derechos reservados.</p>
+      <nav class="footer-nav">
+        <ul>
+          <li><a href="/terminos">Términos y Condiciones</a></li>
+          <li><a href="/privacidad">Política de Privacidad</a></li>
+          <li><a href="/contacto">Contacto</a></li>
+        </ul>
+      </nav>
+      <p>&copy; 2025 Blog Moderno Independiente. Todos los derechos reservados.</p>
     </div>
   </footer>
   
-  <!-- JavaScript para interacciones (opcional) -->
+  <!-- Scripts: aquí se pueden incluir librerías y scripts para mejorar interacciones, lazy loading, etc. -->
+  <script src="script.js"></script>
+  
+  <!-- Placeholders para la integración de complementos y herramientas de terceros (Google AdSense, analíticas, etc.) -->
+  <!-- Ejemplo: Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-XXXXXXXXX-X"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log("La página se ha cargado correctamente.");
-    });
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+  
+    gtag('config', 'UA-XXXXXXXXX-X');
   </script>
+  
+  <!-- Nota: la parte del "Panel de Administración" se desarrollaría en páginas y scripts separados, con autenticación y 
+       acceso restringido, utilizando tecnologías de backend para gestionar usuarios, publicaciones, comentarios, etc. -->
 </body>
 </html>
