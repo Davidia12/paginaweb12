@@ -1,154 +1,74 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Meta descripción para SEO -->
-  <meta name="description" content="El mejor blog moderno, rápido, escalable y optimizado.">
-  <!-- Título -->
-  <title>Blog Moderno Independiente</title>
-  <!-- Enlaces a hojas de estilo (puedes incluir frameworks CSS o tu propio CSS) -->
-  <link rel="stylesheet" href="styles.css">
-  <!-- Ejemplo de favicon -->
-  <link rel="icon" href="favicon.ico">
-  
-  <!-- Marcado estructurado para SEO (ejemplo con JSON-LD) -->
-  <script type="application/ld+json">
-  {
-    "@context": "http://schema.org",
-    "@type": "Blog",
-    "name": "Blog Moderno Independiente",
-    "description": "El mejor blog moderno, rápido, escalable y optimizado.",
-    "url": "https://www.tublog.com"
+// index.js
+const express = require('express');
+const cors = require('cors');
+const multer = require('multer');
+const path = require('path');
+// Para extraer texto de PDF (opcional, si se procesa en el backend)
+const pdfParse = require('pdf-parse');
+
+// Aquí podrías requerir la librería del proveedor de TTS que elijas, por ejemplo:
+// const googleTTS = require('google-tts-api');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Configurar CORS
+app.use(cors());
+// Configurar multer para manejar uploads (en memoria)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// Endpoint para convertir texto o PDF a voz
+app.post('/api/convert', upload.single('pdf'), async (req, res) => {
+  try {
+    let textToConvert = '';
+    
+    // Si se envió un archivo PDF, extraer el texto
+    if (req.file) {
+      const pdfBuffer = req.file.buffer;
+      const pdfData = await pdfParse(pdfBuffer);
+      textToConvert = pdfData.text;
+    } else if (req.body.text) {
+      // En otro caso, usar el campo de texto
+      textToConvert = req.body.text;
+    } else {
+      return res.status(400).json({ error: 'No se proporcionó texto ni archivo PDF.' });
+    }
+    
+    // Parámetros de conversión (voz, velocidad, tono, etc.)
+    const voice = req.body.voice || 'default';
+    const speed = parseFloat(req.body.speed) || 1;
+    const pitch = parseFloat(req.body.pitch) || 0;
+    
+    // Aquí deberías integrar la API del proveedor TTS que elijas.
+    // A modo de ejemplo, se simula la conversión generando un audio ficticio.
+    // En producción, usarías algo como:
+    // const audioUrl = await googleTTS.getAudioUrl(textToConvert, { lang: 'es', slow: speed < 1, host: 'https://translate.google.com' });
+    // Y después descargarías o redirigirías el audio generado.
+    
+    // Simulación: devolvemos un archivo de audio dummy (asegúrate de tener un archivo dummy.mp3 en la carpeta public)
+    const dummyAudioPath = path.join(__dirname, 'public', 'dummy.mp3');
+    
+    // Configurar cabeceras para envío de audio
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Disposition': 'attachment; filename="conversion.mp3"'
+    });
+    
+    // En producción, en lugar de enviar un dummy, se enviaría el audio generado
+    return res.sendFile(dummyAudioPath);
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno al procesar la conversión.' });
   }
-  </script>
-</head>
-<body>
-  <!-- Cabecera principal con navegación -->
-  <header>
-    <nav class="navbar">
-      <div class="container">
-        <a href="/" class="logo">MiBlog</a>
-        <ul class="nav-menu">
-          <li><a href="/" title="Inicio">Inicio</a></li>
-          <li><a href="/publicaciones" title="Publicaciones">Publicaciones</a></li>
-          <li><a href="/acerca" title="Acerca de">Acerca de</a></li>
-          <li><a href="/contacto" title="Contacto">Contacto</a></li>
-          <!-- Acceso al panel de administración (acceso restringido) -->
-          <li><a href="/admin" title="Panel de Administración">Admin</a></li>
-        </ul>
-      </div>
-    </nav>
-  </header>
-  
-  <!-- Sección principal del blog -->
-  <main class="container">
-    <!-- Sección Hero para destacar contenido o mensaje principal -->
-    <section class="hero" aria-label="Destacado">
-      <div class="hero-content">
-        <h1>Bienvenido al Blog Moderno</h1>
-        <p>Contenido optimizado, escalable y listo para el futuro.</p>
-        <!-- Botón para ver las últimas publicaciones -->
-        <a href="/publicaciones" class="btn btn-primary">Ver Publicaciones</a>
-      </div>
-    </section>
-    
-    <!-- Área de contenido principal (publicaciones) -->
-    <section class="posts" aria-label="Publicaciones">
-      <!-- Cada artículo se marca semánticamente con <article> -->
-      <article class="post">
-        <header>
-          <h2 class="post-title"><a href="/publicacion/ejemplo">Título de la Publicación Ejemplo</a></h2>
-          <p class="post-meta">Publicado el <time datetime="2025-02-05">05 de febrero de 2025</time> por <a href="/autor/jdoe">J. Doe</a></p>
-        </header>
-        <section class="post-excerpt">
-          <p>Este es el extracto o resumen de la publicación. Aquí se introduce el contenido de forma breve y atractiva.</p>
-        </section>
-        <footer>
-          <a href="/publicacion/ejemplo" class="btn btn-secondary">Leer Más</a>
-        </footer>
-      </article>
-      
-      <!-- Más artículos se pueden generar dinámicamente -->
-      
-    </section>
-    
-    <!-- Barra lateral (sidebar) con widgets: búsqueda, categorías, redes sociales, etc. -->
-    <aside class="sidebar" aria-label="Barra lateral">
-      <!-- Widget de búsqueda -->
-      <section class="widget search-widget">
-        <h3>Buscar en el blog</h3>
-        <form action="/buscar" method="get">
-          <label for="search" class="sr-only">Buscar</label>
-          <input type="text" id="search" name="q" placeholder="Buscar..." required>
-          <button type="submit">Buscar</button>
-        </form>
-      </section>
-      
-      <!-- Widget de categorías -->
-      <section class="widget categories-widget">
-        <h3>Categorías</h3>
-        <ul>
-          <li><a href="/categoria/tecnologia">Tecnología</a></li>
-          <li><a href="/categoria/programacion">Programación</a></li>
-          <li><a href="/categoria/diseno">Diseño</a></li>
-          <!-- Más categorías -->
-        </ul>
-      </section>
-      
-      <!-- Widget de redes sociales -->
-      <section class="widget social-widget">
-        <h3>Síguenos</h3>
-        <ul class="social-links">
-          <li><a href="https://facebook.com/tublog" target="_blank" rel="noopener" title="Facebook">Facebook</a></li>
-          <li><a href="https://twitter.com/tublog" target="_blank" rel="noopener" title="Twitter">Twitter</a></li>
-          <li><a href="https://instagram.com/tublog" target="_blank" rel="noopener" title="Instagram">Instagram</a></li>
-          <!-- Más redes sociales -->
-        </ul>
-      </section>
-      
-      <!-- Placeholder para herramientas de email marketing -->
-      <section class="widget newsletter-widget">
-        <h3>Suscríbete</h3>
-        <p>Recibe nuestras últimas publicaciones directamente en tu correo.</p>
-        <form action="/suscripcion" method="post">
-          <label for="email-news" class="sr-only">Correo electrónico</label>
-          <input type="email" id="email-news" name="email" placeholder="tuemail@ejemplo.com" required>
-          <button type="submit">Suscribirme</button>
-        </form>
-      </section>
-    </aside>
-  </main>
-  
-  <!-- Pie de página con información adicional y enlaces legales -->
-  <footer class="footer">
-    <div class="container">
-      <nav class="footer-nav">
-        <ul>
-          <li><a href="/terminos">Términos y Condiciones</a></li>
-          <li><a href="/privacidad">Política de Privacidad</a></li>
-          <li><a href="/contacto">Contacto</a></li>
-        </ul>
-      </nav>
-      <p>&copy; 2025 Blog Moderno Independiente. Todos los derechos reservados.</p>
-    </div>
-  </footer>
-  
-  <!-- Scripts: aquí se pueden incluir librerías y scripts para mejorar interacciones, lazy loading, etc. -->
-  <script src="script.js"></script>
-  
-  <!-- Placeholders para la integración de complementos y herramientas de terceros (Google AdSense, analíticas, etc.) -->
-  <!-- Ejemplo: Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-XXXXXXXXX-X"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-  
-    gtag('config', 'UA-XXXXXXXXX-X');
-  </script>
-  
-  <!-- Nota: la parte del "Panel de Administración" se desarrollaría en páginas y scripts separados, con autenticación y 
-       acceso restringido, utilizando tecnologías de backend para gestionar usuarios, publicaciones, comentarios, etc. -->
-</body>
-</html>
+});
+
+// Endpoint de prueba (por ejemplo, para el historial, usuarios, etc.)
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Backend funcionando correctamente' });
+});
+
+app.listen(port, () => {
+  console.log(`Servidor corriendo en http://localhost:${port}`);
+});
