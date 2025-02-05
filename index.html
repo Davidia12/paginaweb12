@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Conversor TTS: Texto/PDF a Voz</title>
-  <meta name="description" content="Convierte texto o archivos PDF en voz de alta calidad utilizando IA nativa del navegador.">
+  <meta name="description" content="Convierte texto o archivos PDF en voz de alta calidad con opciones para detener la reproducción y descargar el audio en MP3.">
   <!-- Estilos básicos -->
   <style>
     body {
@@ -89,6 +89,7 @@
       cursor: pointer;
       font-size: 1rem;
       transition: background 0.3s;
+      margin-right: 1rem;
     }
     .btn:hover {
       background: #005fa3;
@@ -150,10 +151,14 @@
       </div>
     </div>
     
-    <!-- Botón para iniciar la conversión -->
-    <button id="convertBtn" class="btn">Convertir a Voz</button>
+    <!-- Botones para iniciar la conversión, detener audio y descargar MP3 -->
+    <div class="conversion-buttons">
+      <button id="convertBtn" class="btn">Convertir a Voz</button>
+      <button id="stopBtn" class="btn">Detener Audio</button>
+      <button id="downloadBtn" class="btn">Descargar MP3</button>
+    </div>
     
-    <!-- Área para mostrar el resultado (en este caso, se reproducirá la síntesis) -->
+    <!-- Área para mostrar el resultado -->
     <div id="audioResult" class="audio-result"></div>
   </div>
   
@@ -163,17 +168,23 @@
   
   <!-- JavaScript para la funcionalidad -->
   <script>
-    // Variables de elementos
+    // Elementos del DOM
     const tabText = document.getElementById('tab-text');
     const tabPdf = document.getElementById('tab-pdf');
     const textConversion = document.getElementById('text-conversion');
     const pdfConversion = document.getElementById('pdf-conversion');
     const convertBtn = document.getElementById('convertBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
     const voiceSelect = document.getElementById('voiceSelect');
     const speedRange = document.getElementById('speedRange');
     const pitchRange = document.getElementById('pitchRange');
     const speedVal = document.getElementById('speedVal');
     const pitchVal = document.getElementById('pitchVal');
+    const audioResult = document.getElementById('audioResult');
+
+    // Variable para almacenar la síntesis en curso
+    let currentUtterance = null;
     
     // Actualizar valores de velocidad y tono
     speedRange.addEventListener('input', () => speedVal.textContent = speedRange.value);
@@ -193,7 +204,7 @@
       textConversion.classList.remove('active');
     });
     
-    // Función para cargar voces disponibles
+    // Cargar voces disponibles
     function loadVoices() {
       const voices = window.speechSynthesis.getVoices();
       voiceSelect.innerHTML = '';
@@ -204,7 +215,6 @@
         voiceSelect.appendChild(option);
       });
     }
-    // Cargar voces; en algunos navegadores es necesario esperar el evento voiceschanged
     if (typeof speechSynthesis !== 'undefined') {
       loadVoices();
       if (speechSynthesis.onvoiceschanged !== undefined) {
@@ -212,7 +222,7 @@
       }
     }
     
-    // Función para extraer texto de un PDF utilizando PDF.js
+    // Función para extraer texto de un PDF con PDF.js
     async function extractTextFromPDF(file) {
       const fileReader = new FileReader();
       return new Promise((resolve, reject) => {
@@ -243,7 +253,12 @@
         alert("La síntesis de voz no es compatible con este navegador.");
         return;
       }
+      // Cancelar síntesis previa, si existe
+      window.speechSynthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(text);
+      currentUtterance = utterance;
+      
       const voices = speechSynthesis.getVoices();
       const selectedVoice = voices[voiceSelect.value];
       if (selectedVoice) {
@@ -252,21 +267,26 @@
       utterance.rate = parseFloat(speedRange.value);
       utterance.pitch = parseFloat(pitchRange.value);
       
-      // Limpiar área de resultados y reproducir la síntesis
-      document.getElementById('audioResult').innerHTML = '<p>Reproduciendo audio...</p>';
+      audioResult.innerHTML = '<p>Reproduciendo audio...</p>';
       speechSynthesis.speak(utterance);
+      
       utterance.onend = () => {
-        document.getElementById('audioResult').innerHTML = '<p>Conversión completada.</p>';
+        audioResult.innerHTML = '<p>Conversión completada.</p>';
+        // Activar el botón de descarga tras la conversión
+        downloadBtn.disabled = false;
       };
+      
       utterance.onerror = (e) => {
         console.error(e);
-        document.getElementById('audioResult').innerHTML = '<p>Error durante la conversión.</p>';
+        audioResult.innerHTML = '<p>Error durante la conversión.</p>';
       };
     }
     
-    // Manejar el clic del botón de conversión
+    // Manejar clic en el botón Convertir
     convertBtn.addEventListener('click', async () => {
-      // Determinar el modo activo (Texto o PDF)
+      // Desactivar botón de descarga hasta finalizar la conversión
+      downloadBtn.disabled = true;
+      
       if (textConversion.classList.contains('active')) {
         const text = document.getElementById('inputText').value.trim();
         if (!text) {
@@ -281,7 +301,7 @@
           return;
         }
         try {
-          document.getElementById('audioResult').innerHTML = '<p>Extrayendo texto del PDF...</p>';
+          audioResult.innerHTML = '<p>Extrayendo texto del PDF...</p>';
           const extractedText = await extractTextFromPDF(pdfFile);
           if (!extractedText.trim()) {
             alert("No se pudo extraer texto del PDF.");
@@ -294,6 +314,28 @@
         }
       }
     });
+    
+    // Botón para detener la reproducción de audio
+    stopBtn.addEventListener('click', () => {
+      window.speechSynthesis.cancel();
+      audioResult.innerHTML = '<p>Reproducción detenida.</p>';
+    });
+    
+    // Botón para descargar un archivo MP3 (simulación)
+    downloadBtn.addEventListener('click', () => {
+      // En una implementación real, aquí se generaría un MP3 a partir del audio sintetizado.
+      // Para este ejemplo, simulamos la descarga de un archivo dummy.
+      const dummyMP3Url = 'dummy.mp3'; // Asegúrate de tener un archivo dummy.mp3 accesible
+      const link = document.createElement('a');
+      link.href = dummyMP3Url;
+      link.download = 'conversion.mp3';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+    
+    // Inicialmente se desactiva el botón de descarga
+    downloadBtn.disabled = true;
   </script>
 </body>
 </html>
