@@ -1,201 +1,199 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversor de Texto a Audio</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Estilos personalizados -->
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            margin: 0;
-            padding: 0;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s, color 0.3s;
-        }
-        h1 {
-            text-align: center;
-            color: #343a40;
-        }
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #004999;
-        }
-        .dark-mode {
-            background-color: #343a40 !important;
-            color: #ffffff !important;
-        }
-        .dark-mode .btn-primary {
-            background-color: #0056b3 !important;
-            border-color: #004999 !important;
-        }
-        .voice-settings {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .voice-settings label {
-            margin-right: 10px;
-        }
-        .audio-controls {
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página Web Moderna</title>
+  <style>
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      line-height: 1.6;
+      color: #333;
+    }
+    
+    /* Contenedor central */
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 0 20px;
+    }
+    
+    /* Encabezado */
+    header {
+      background: #333;
+      color: #fff;
+      padding: 1rem 0;
+      text-align: center;
+    }
+    
+    /* Navegación */
+    nav {
+      background: #444;
+    }
+    
+    nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      padding: 0.5rem 0;
+    }
+    
+    nav ul li {
+      margin: 0 1rem;
+    }
+    
+    nav ul li a {
+      color: #fff;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    nav ul li a:hover {
+      color: #ffd700;
+    }
+    
+    /* Secciones */
+    section {
+      padding: 2rem 0;
+      background: #fff;
+      margin-bottom: 1rem;
+    }
+    
+    section:nth-of-type(even) {
+      background: #e9e9e9;
+    }
+    
+    section h2 {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    /* Formulario de contacto */
+    form {
+      max-width: 600px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    form label {
+      margin: 0.5rem 0 0.2rem;
+    }
+    
+    form input,
+    form textarea {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    
+    form button {
+      margin-top: 1rem;
+      padding: 0.7rem;
+      border: none;
+      background: #333;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    
+    form button:hover {
+      background: #555;
+    }
+    
+    /* Pie de página */
+    footer {
+      background: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1rem 0;
+    }
+  </style>
 </head>
-<body class="light-mode">
-
-    <div class="container light-mode">
-        <h1>Conversor de Texto a Audio</h1>
-        <p>Escribe tu texto o carga un archivo .txt y conviértelo en audio.</p>
-
-        <!-- Modo Oscuro -->
-        <button id="themeToggle" class="btn btn-secondary w-100 mb-3">Cambiar a Modo Oscuro</button>
-
-        <!-- Formulario Interactivo -->
-        <form id="textToAudioForm">
-            <!-- Cargar Archivo TXT -->
-            <div class="mb-3">
-                <label for="fileInput" class="form-label">Cargar Archivo .txt:</label>
-                <input type="file" class="form-control" id="fileInput" accept=".txt">
-            </div>
-
-            <!-- Ingresar Texto -->
-            <div class="mb-3">
-                <label for="textInput" class="form-label">Texto:</label>
-                <textarea class="form-control" id="textInput" rows="5" placeholder="Ingresa tu texto aquí..." required></textarea>
-            </div>
-
-            <!-- Configuración de Voz -->
-            <div class="voice-settings">
-                <label for="languageSelect">Idioma:</label>
-                <select class="form-select" id="languageSelect" style="width: 200px;">
-                    <option value="es-ES">Español (España)</option>
-                    <option value="en-US">Inglés (Estados Unidos)</option>
-                    <option value="fr-FR">Francés (Francia)</option>
-                </select>
-
-                <label for="speedInput">Velocidad:</label>
-                <input type="range" class="form-range" id="speedInput" min="0.5" max="2" step="0.1" value="1">
-            </div>
-
-            <!-- Botones de Acción -->
-            <div class="audio-controls">
-                <button type="button" class="btn btn-primary w-100 mb-2" id="convertButton">Reproducir Audio</button>
-                <button type="button" class="btn btn-success w-100" id="downloadButton" disabled>Descargar Audio (Simulado)</button>
-            </div>
-        </form>
-
-        <!-- Sección de Respuesta -->
-        <div id="response" class="mt-4" style="display: none;">
-            <h4>Audio Generado</h4>
-            <audio controls id="audioPlayer"></audio>
-        </div>
+<body>
+  <!-- Encabezado -->
+  <header>
+    <div class="container">
+      <h1>Bienvenido a Mi Página Web Moderna</h1>
     </div>
-
-    <script>
-        // Variables globales
-        const textInput = document.getElementById('textInput');
-        const fileInput = document.getElementById('fileInput');
-        const languageSelect = document.getElementById('languageSelect');
-        const speedInput = document.getElementById('speedInput');
-        const convertButton = document.getElementById('convertButton');
-        const downloadButton = document.getElementById('downloadButton');
-        const audioPlayer = document.getElementById('audioPlayer');
-
-        // Función para obtener voces disponibles
-        function getVoices() {
-            return speechSynthesis.getVoices().filter(voice => voice.lang === languageSelect.value);
-        }
-
-        // Función para cargar el contenido de un archivo .txt
-        fileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-
-                reader.onload = (e) => {
-                    textInput.value = e.target.result.trim(); // Inserta el contenido en el textarea
-                };
-
-                reader.onerror = () => {
-                    alert('Error al leer el archivo.');
-                };
-
-                reader.readAsText(file);
-            } else {
-                alert('Por favor, selecciona un archivo válido.');
-            }
-        });
-
-        // Función para reproducir el texto como audio
-        function playTextAsAudio() {
-            const utterance = new SpeechSynthesisUtterance(textInput.value.trim());
-            const voices = getVoices();
-
-            if (voices.length === 0) {
-                alert('No se encontraron voces disponibles.');
-                return;
-            }
-
-            utterance.voice = voices[0];
-            utterance.rate = parseFloat(speedInput.value);
-
-            // Cancelar cualquier reproducción anterior
-            speechSynthesis.cancel();
-            speechSynthesis.speak(utterance);
-
-            // Mostrar mensaje de éxito
-            alert('El audio está siendo reproducido.');
-        }
-
-        // Manejar clic en "Reproducir Audio"
-        convertButton.addEventListener('click', () => {
-            if (textInput.value.trim() === '') {
-                alert('Por favor, ingresa un texto.');
-                return;
-            }
-
-            playTextAsAudio();
-        });
-
-        // Descargar el archivo MP3 (simulado)
-        downloadButton.addEventListener('click', () => {
-            alert('La descarga de audio no está completamente implementada debido a limitaciones técnicas.');
-        });
-
-        // Cambiar entre modos claro y oscuro
-        const themeToggle = document.getElementById('themeToggle');
-        const body = document.body;
-
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            themeToggle.textContent = body.classList.contains('dark-mode') ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro';
-        });
-
-        // Establecer el tema inicial basado en las preferencias del sistema
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            body.classList.add('dark-mode');
-            themeToggle.textContent = 'Cambiar a Modo Claro';
-        } else {
-            body.classList.add('light-mode');
-            themeToggle.textContent = 'Cambiar a Modo Oscuro';
-        }
-    </script>
+  </header>
+  
+  <!-- Navegación -->
+  <nav>
+    <div class="container">
+      <ul>
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#servicios">Servicios</a></li>
+        <li><a href="#acerca">Acerca de</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+    </div>
+  </nav>
+  
+  <!-- Sección: Inicio -->
+  <section id="inicio">
+    <div class="container">
+      <h2>Inicio</h2>
+      <p>Esta es una página web moderna y completa desarrollada con HTML5 y CSS3. Aquí podrás encontrar información sobre nuestros servicios y conocer más sobre nosotros.</p>
+    </div>
+  </section>
+  
+  <!-- Sección: Servicios -->
+  <section id="servicios">
+    <div class="container">
+      <h2>Servicios</h2>
+      <p>Ofrecemos servicios de diseño web, desarrollo de aplicaciones y optimización SEO, adaptándonos a las necesidades de cada cliente y buscando siempre la excelencia en nuestros proyectos.</p>
+    </div>
+  </section>
+  
+  <!-- Sección: Acerca de -->
+  <section id="acerca">
+    <div class="container">
+      <h2>Acerca de</h2>
+      <p>Somos un equipo comprometido con la innovación y la calidad. Nuestra misión es brindar soluciones digitales que impulsen el crecimiento de nuestros clientes en el entorno online.</p>
+    </div>
+  </section>
+  
+  <!-- Sección: Contacto -->
+  <section id="contacto">
+    <div class="container">
+      <h2>Contacto</h2>
+      <form action="#" method="post">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        
+        <label for="email">Correo Electrónico:</label>
+        <input type="email" id="email" name="email" required>
+        
+        <label for="mensaje">Mensaje:</label>
+        <textarea id="mensaje" name="mensaje" rows="5" required></textarea>
+        
+        <button type="submit">Enviar</button>
+      </form>
+    </div>
+  </section>
+  
+  <!-- Pie de página -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Mi Página Web Moderna. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+  
+  <!-- JavaScript para interacciones (opcional) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log("La página se ha cargado correctamente.");
+    });
+  </script>
 </body>
 </html>
