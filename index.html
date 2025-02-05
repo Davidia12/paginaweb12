@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Conversor TTS: Texto/PDF a Voz</title>
-  <meta name="description" content="Convierte texto o archivos PDF en voz de alta calidad con opciones para detener la reproducción y descargar el audio en MP3.">
+  <meta name="description" content="Convierte texto o archivos PDF en voz de alta calidad con opciones avanzadas y descarga de MP3.">
   <!-- Estilos básicos -->
   <style>
     body {
@@ -12,6 +12,14 @@
       margin: 0;
       background: #f2f2f2;
       color: #333;
+    }
+    /* Banner superior */
+    .top-banner {
+      background: #333;
+      color: #fff;
+      text-align: center;
+      padding: 0.5rem;
+      font-size: 1.1rem;
     }
     header {
       background: #0077cc;
@@ -78,6 +86,9 @@
     .conversion-options input[type="range"] {
       margin-right: 1rem;
     }
+    .conversion-buttons {
+      margin: 1rem 0;
+    }
     .btn {
       display: inline-block;
       background: #0077cc;
@@ -109,6 +120,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
 </head>
 <body>
+  <!-- Banner superior -->
+  <div class="top-banner">Página para Damian</div>
+
   <header>
     <h1>Conversor TTS: Texto/PDF a Voz</h1>
   </header>
@@ -272,7 +286,7 @@
       
       utterance.onend = () => {
         audioResult.innerHTML = '<p>Conversión completada.</p>';
-        // Activar el botón de descarga tras la conversión
+        // Habilitar el botón de descarga tras la conversión
         downloadBtn.disabled = false;
       };
       
@@ -321,13 +335,13 @@
       audioResult.innerHTML = '<p>Reproducción detenida.</p>';
     });
     
-    // Botón para descargar un archivo MP3 (simulación)
+    // Botón para descargar un archivo MP3 (solución corregida)
     downloadBtn.addEventListener('click', () => {
-      // En una implementación real, aquí se generaría un MP3 a partir del audio sintetizado.
-      // Para este ejemplo, simulamos la descarga de un archivo dummy.
-      const dummyMP3Url = 'dummy.mp3'; // Asegúrate de tener un archivo dummy.mp3 accesible
+      // Para fines de demostración, se utiliza un data URI de un MP3 dummy.
+      // En una implementación real, se debería generar o capturar el audio sintetizado.
+      const dummyMP3DataUri = "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU2LjI1LjEwNQAAAAAAAAAAAAAA//tQxAAADf//"; 
       const link = document.createElement('a');
-      link.href = dummyMP3Url;
+      link.href = dummyMP3DataUri;
       link.download = 'conversion.mp3';
       document.body.appendChild(link);
       link.click();
