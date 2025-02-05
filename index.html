@@ -1,74 +1,299 @@
-// index.js
-const express = require('express');
-const cors = require('cors');
-const multer = require('multer');
-const path = require('path');
-// Para extraer texto de PDF (opcional, si se procesa en el backend)
-const pdfParse = require('pdf-parse');
-
-// Aquí podrías requerir la librería del proveedor de TTS que elijas, por ejemplo:
-// const googleTTS = require('google-tts-api');
-
-const app = express();
-const port = process.env.PORT || 3000;
-
-// Configurar CORS
-app.use(cors());
-// Configurar multer para manejar uploads (en memoria)
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
-// Endpoint para convertir texto o PDF a voz
-app.post('/api/convert', upload.single('pdf'), async (req, res) => {
-  try {
-    let textToConvert = '';
-    
-    // Si se envió un archivo PDF, extraer el texto
-    if (req.file) {
-      const pdfBuffer = req.file.buffer;
-      const pdfData = await pdfParse(pdfBuffer);
-      textToConvert = pdfData.text;
-    } else if (req.body.text) {
-      // En otro caso, usar el campo de texto
-      textToConvert = req.body.text;
-    } else {
-      return res.status(400).json({ error: 'No se proporcionó texto ni archivo PDF.' });
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Conversor TTS: Texto/PDF a Voz</title>
+  <meta name="description" content="Convierte texto o archivos PDF en voz de alta calidad utilizando IA nativa del navegador.">
+  <!-- Estilos básicos -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f2f2f2;
+      color: #333;
     }
+    header {
+      background: #0077cc;
+      padding: 1rem;
+      color: #fff;
+      text-align: center;
+    }
+    .container {
+      width: 90%;
+      max-width: 1000px;
+      margin: 2rem auto;
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 1rem;
+    }
+    .tabs button {
+      flex: 1;
+      padding: 0.8rem;
+      border: none;
+      background: #e0e0e0;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s;
+    }
+    .tabs button.active {
+      background: #0077cc;
+      color: #fff;
+    }
+    .conversion-form {
+      display: none;
+    }
+    .conversion-form.active {
+      display: block;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    input[type="file"] {
+      font-size: 1rem;
+      margin: 0.5rem 0;
+    }
+    .conversion-options {
+      margin: 1rem 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+    .conversion-options label {
+      margin-right: 0.5rem;
+    }
+    .conversion-options select,
+    .conversion-options input[type="range"] {
+      margin-right: 1rem;
+    }
+    .btn {
+      display: inline-block;
+      background: #0077cc;
+      color: #fff;
+      padding: 0.8rem 1.2rem;
+      text-decoration: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #005fa3;
+    }
+    .audio-result {
+      margin-top: 1.5rem;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #0077cc;
+      color: #fff;
+      margin-top: 2rem;
+    }
+  </style>
+  <!-- Incluir PDF.js desde CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Conversor TTS: Texto/PDF a Voz</h1>
+  </header>
+  
+  <div class="container">
+    <!-- Pestañas para elegir entre Texto y PDF -->
+    <div class="tabs">
+      <button id="tab-text" class="active">Texto</button>
+      <button id="tab-pdf">PDF</button>
+    </div>
     
-    // Parámetros de conversión (voz, velocidad, tono, etc.)
-    const voice = req.body.voice || 'default';
-    const speed = parseFloat(req.body.speed) || 1;
-    const pitch = parseFloat(req.body.pitch) || 0;
+    <!-- Área para ingresar texto -->
+    <div id="text-conversion" class="conversion-form active">
+      <textarea id="inputText" placeholder="Escribe o pega el texto aquí..."></textarea>
+    </div>
     
-    // Aquí deberías integrar la API del proveedor TTS que elijas.
-    // A modo de ejemplo, se simula la conversión generando un audio ficticio.
-    // En producción, usarías algo como:
-    // const audioUrl = await googleTTS.getAudioUrl(textToConvert, { lang: 'es', slow: speed < 1, host: 'https://translate.google.com' });
-    // Y después descargarías o redirigirías el audio generado.
+    <!-- Área para subir PDF -->
+    <div id="pdf-conversion" class="conversion-form">
+      <input type="file" id="pdfFile" accept="application/pdf">
+      <p>Selecciona un archivo PDF para extraer el texto y convertirlo en voz.</p>
+    </div>
     
-    // Simulación: devolvemos un archivo de audio dummy (asegúrate de tener un archivo dummy.mp3 en la carpeta public)
-    const dummyAudioPath = path.join(__dirname, 'public', 'dummy.mp3');
+    <!-- Opciones de conversión -->
+    <div class="conversion-options">
+      <div>
+        <label for="voiceSelect">Voz:</label>
+        <select id="voiceSelect">
+          <!-- Se llenará dinámicamente -->
+        </select>
+      </div>
+      <div>
+        <label for="speedRange">Velocidad:</label>
+        <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
+        <span id="speedVal">1</span>
+      </div>
+      <div>
+        <label for="pitchRange">Tono:</label>
+        <input type="range" id="pitchRange" min="0" max="2" step="0.1" value="1">
+        <span id="pitchVal">1</span>
+      </div>
+    </div>
     
-    // Configurar cabeceras para envío de audio
-    res.set({
-      'Content-Type': 'audio/mpeg',
-      'Content-Disposition': 'attachment; filename="conversion.mp3"'
+    <!-- Botón para iniciar la conversión -->
+    <button id="convertBtn" class="btn">Convertir a Voz</button>
+    
+    <!-- Área para mostrar el resultado (en este caso, se reproducirá la síntesis) -->
+    <div id="audioResult" class="audio-result"></div>
+  </div>
+  
+  <footer>
+    <p>&copy; 2025 Conversor TTS. Todos los derechos reservados.</p>
+  </footer>
+  
+  <!-- JavaScript para la funcionalidad -->
+  <script>
+    // Variables de elementos
+    const tabText = document.getElementById('tab-text');
+    const tabPdf = document.getElementById('tab-pdf');
+    const textConversion = document.getElementById('text-conversion');
+    const pdfConversion = document.getElementById('pdf-conversion');
+    const convertBtn = document.getElementById('convertBtn');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const speedRange = document.getElementById('speedRange');
+    const pitchRange = document.getElementById('pitchRange');
+    const speedVal = document.getElementById('speedVal');
+    const pitchVal = document.getElementById('pitchVal');
+    
+    // Actualizar valores de velocidad y tono
+    speedRange.addEventListener('input', () => speedVal.textContent = speedRange.value);
+    pitchRange.addEventListener('input', () => pitchVal.textContent = pitchRange.value);
+    
+    // Manejo de pestañas
+    tabText.addEventListener('click', () => {
+      tabText.classList.add('active');
+      tabPdf.classList.remove('active');
+      textConversion.classList.add('active');
+      pdfConversion.classList.remove('active');
+    });
+    tabPdf.addEventListener('click', () => {
+      tabPdf.classList.add('active');
+      tabText.classList.remove('active');
+      pdfConversion.classList.add('active');
+      textConversion.classList.remove('active');
     });
     
-    // En producción, en lugar de enviar un dummy, se enviaría el audio generado
-    return res.sendFile(dummyAudioPath);
+    // Función para cargar voces disponibles
+    function loadVoices() {
+      const voices = window.speechSynthesis.getVoices();
+      voiceSelect.innerHTML = '';
+      voices.forEach((voice, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        voiceSelect.appendChild(option);
+      });
+    }
+    // Cargar voces; en algunos navegadores es necesario esperar el evento voiceschanged
+    if (typeof speechSynthesis !== 'undefined') {
+      loadVoices();
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+      }
+    }
     
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error interno al procesar la conversión.' });
-  }
-});
-
-// Endpoint de prueba (por ejemplo, para el historial, usuarios, etc.)
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Backend funcionando correctamente' });
-});
-
-app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
-});
+    // Función para extraer texto de un PDF utilizando PDF.js
+    async function extractTextFromPDF(file) {
+      const fileReader = new FileReader();
+      return new Promise((resolve, reject) => {
+        fileReader.onload = async function() {
+          const typedarray = new Uint8Array(this.result);
+          try {
+            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+            let fullText = '';
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              const page = await pdf.getPage(pageNum);
+              const content = await page.getTextContent();
+              const pageText = content.items.map(item => item.str).join(' ');
+              fullText += pageText + '\n';
+            }
+            resolve(fullText);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        fileReader.onerror = () => reject('Error al leer el archivo PDF.');
+        fileReader.readAsArrayBuffer(file);
+      });
+    }
+    
+    // Función para sintetizar voz a partir de un texto
+    function speakText(text) {
+      if (!window.speechSynthesis) {
+        alert("La síntesis de voz no es compatible con este navegador.");
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voices = speechSynthesis.getVoices();
+      const selectedVoice = voices[voiceSelect.value];
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+      utterance.rate = parseFloat(speedRange.value);
+      utterance.pitch = parseFloat(pitchRange.value);
+      
+      // Limpiar área de resultados y reproducir la síntesis
+      document.getElementById('audioResult').innerHTML = '<p>Reproduciendo audio...</p>';
+      speechSynthesis.speak(utterance);
+      utterance.onend = () => {
+        document.getElementById('audioResult').innerHTML = '<p>Conversión completada.</p>';
+      };
+      utterance.onerror = (e) => {
+        console.error(e);
+        document.getElementById('audioResult').innerHTML = '<p>Error durante la conversión.</p>';
+      };
+    }
+    
+    // Manejar el clic del botón de conversión
+    convertBtn.addEventListener('click', async () => {
+      // Determinar el modo activo (Texto o PDF)
+      if (textConversion.classList.contains('active')) {
+        const text = document.getElementById('inputText').value.trim();
+        if (!text) {
+          alert("Por favor, ingresa el texto a convertir.");
+          return;
+        }
+        speakText(text);
+      } else if (pdfConversion.classList.contains('active')) {
+        const pdfFile = document.getElementById('pdfFile').files[0];
+        if (!pdfFile) {
+          alert("Por favor, selecciona un archivo PDF.");
+          return;
+        }
+        try {
+          document.getElementById('audioResult').innerHTML = '<p>Extrayendo texto del PDF...</p>';
+          const extractedText = await extractTextFromPDF(pdfFile);
+          if (!extractedText.trim()) {
+            alert("No se pudo extraer texto del PDF.");
+            return;
+          }
+          speakText(extractedText);
+        } catch (error) {
+          console.error(error);
+          alert("Error al procesar el PDF.");
+        }
+      }
+    });
+  </script>
+</body>
+</html>
