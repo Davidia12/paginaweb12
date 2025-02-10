@@ -199,8 +199,8 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'TU_SUPABASE_URL'; // Reemplaza con tu URL de Supabase
-        const SUPABASE_ANON_KEY = 'TU_SUPABASE_ANON_KEY'; // Reemplaza con tu clave anónima de Supabase
+        const SUPABASE_URL = 'https://mflrfzfljopwtqcvksac.supabase.co'; // Reemplaza con tu URL de Supabase
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mbHJmemZsam9wd3RxY3Zrc2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyMjUyNTksImV4cCI6MjA1NDgwMTI1OX0.jzSU1Oz0r2KO6o1ttwVGQjXomeHA8O_0ysvFXvXgX8Y'; // Reemplaza con tu clave anónima de Supabase
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         class AuthManager {
@@ -272,8 +272,10 @@
 
         class ChatApp {
             constructor() {
-                this.apiKey = 'TU_API_KEY'; // Reemplaza con tu API key de IA
-                this.apiEndpoint = 'TU_API_ENDPOINT'; // Reemplaza con el endpoint de tu IA
+                this.apiKey = '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
+'; // Reemplaza con tu API key de IA
+                this.apiEndpoint = 'https://api.groq.com/chat/completions
+'; // Reemplaza con el endpoint de tu IA
                 this.userId = null;
                 
                 document.querySelector('.container').classList.add('hidden');
