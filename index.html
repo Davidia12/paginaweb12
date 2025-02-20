@@ -1,477 +1,81 @@
-<DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistente IA de Damian</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-    
+    <title>LuxeCuff - Joyería Minimalista</title>
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --background-color: #f5f6fa;
-            --chat-bg: #ffffff;
-            --text-color: #2c3e50;
-        }
-
-        * {
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .chat-container {
-            background-color: var(--chat-bg);
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        .chat-messages {
-            height: 500px;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-
-        .message {
-            margin-bottom: 1rem;
-            padding: 1rem;
-            border-radius: 8px;
-            max-width: 80%;
-        }
-
-        .user-message {
-            background-color: var(--secondary-color);
-            color: white;
-            margin-left: auto;
-        }
-
-        .ai-message {
-            background-color: #f0f2f5;
-            margin-right: auto;
-        }
-
-        .input-area {
-            display: flex;
-            padding: 1rem;
-            border-top: 1px solid #eee;
-        }
-
-        textarea {
-            flex: 1;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            resize: none;
-            height: 50px;
-            margin-right: 1rem;
-        }
-
-        button {
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            background-color: var(--secondary-color);
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        button:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-        }
-
-        .features-container {
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .file-upload, .audio-controls {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .auth-container {
-            max-width: 400px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: var(--chat-bg);
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .login-form h2 {
             text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
         }
-
-        .login-form input {
-            padding: 0.8rem;
-            border: 1px solid #ddd;
+        header {
+            background-color: #f5f5f5;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .banner {
+            background: url('banner.jpg') no-repeat center center/cover;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .section {
+            padding: 40px;
+        }
+        .product {
+            display: inline-block;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            width: 300px;
+        }
+        .cta-button {
+            background-color: #ffcc00;
+            color: black;
+            padding: 15px 20px;
+            text-decoration: none;
+            font-size: 18px;
             border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .login-form button {
-            padding: 0.8rem;
-            font-size: 1rem;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .features-container {
-                flex-direction: column;
-            }
+            margin-top: 20px;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="login-form" id="loginForm">
-            <h2>Iniciar Sesión</h2>
-            <input type="email" id="emailInput" placeholder="Email">
-            <input type="password" id="passwordInput" placeholder="Contraseña">
-            <button id="loginButton">Iniciar Sesión</button>
-            <button id="registerButton">Registrarse</button>
+    <header>LuxeCuff - Elegancia Minimalista</header>
+    <div class="banner">Descubre el toque perfecto para tu estilo ✨</div>
+    
+    <div class="section">
+        <h2>Nuestros Productos</h2>
+        <div class="product">
+            <img src="bracelet.jpg" width="250" alt="Brazalete dorado">
+            <h3>Brazalete Minimalista</h3>
+            <p>Diseño elegante, perfecto para cualquier ocasión.</p>
+            <a href="#" class="cta-button">Comprar Ahora</a>
         </div>
     </div>
-
-    <div class="container">
-        <div class="chat-container">
-            <div class="chat-messages" id="chatMessages"></div>
-            <div class="input-area">
-                <textarea id="userInput" placeholder="Escribe tu mensaje aquí..."></textarea>
-                <button id="sendButton">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-        
-        <div class="features-container">
-            <div class="file-upload">
-                <input type="file" id="fileInput" accept=".txt,.pdf" hidden>
-                <button id="uploadButton">
-                    <i class="fas fa-upload"></i> Subir Archivo
-                </button>
-            </div>
-            
-            <div class="audio-controls">
-                <button id="playButton" disabled>
-                    <i class="fas fa-play"></i> Reproducir
-                </button>
-                <button id="downloadMP3" disabled>
-                    <i class="fas fa-download"></i> Descargar MP3
-                </button>
-            </div>
-        </div>
+    
+    <div class="section">
+        <h2>Testimonios</h2>
+        <p>⭐⭐⭐⭐⭐ "Me encanta este brazalete, es justo lo que buscaba!" - Laura G.</p>
     </div>
-
-    <script>
-        const SUPABASE_URL = 'https://mflrfzfljopwtqcvksac.supabase.co'; // Reemplaza con tu URL de Supabase
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mbHJmemZsam9wd3RxY3Zrc2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyMjUyNTksImV4cCI6MjA1NDgwMTI1OX0.jzSU1Oz0r2KO6o1ttwVGQjXomeHA8O_0ysvFXvXgX8Y'; // Reemplaza con tu clave anónima de Supabase
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        class AuthManager {
-            constructor(chatApp) {
-                this.chatApp = chatApp;
-                this.loginForm = document.getElementById('loginForm');
-                this.emailInput = document.getElementById('emailInput');
-                this.passwordInput = document.getElementById('passwordInput');
-                this.loginButton = document.getElementById('loginButton');
-                this.registerButton = document.getElementById('registerButton');
-                
-                this.setupEventListeners();
-                this.checkSession();
-            }
-
-            setupEventListeners() {
-                this.loginButton.addEventListener('click', () => this.handleLogin());
-                this.registerButton.addEventListener('click', () => this.handleRegister());
-            }
-
-            async checkSession() {
-                const { data: { session }, error } = await supabase.auth.getSession();
-                if (session) {
-                    this.onLoginSuccess(session);
-                }
-            }
-
-            async handleLogin() {
-                const email = this.emailInput.value;
-                const password = this.passwordInput.value;
-
-                try {
-                    const { data: { session }, error } = await supabase.auth.signInWithPassword({
-                        email,
-                        password
-                    });
-
-                    if (error) throw error;
-                    this.onLoginSuccess(session);
-                } catch (error) {
-                    alert('Error al iniciar sesión: ' + error.message);
-                }
-            }
-
-            async handleRegister() {
-                const email = this.emailInput.value;
-                const password = this.passwordInput.value;
-
-                try {
-                    const { data: { session }, error } = await supabase.auth.signUp({
-                        email,
-                        password
-                    });
-
-                    if (error) throw error;
-                    alert('Revisa tu email para confirmar tu cuenta');
-                } catch (error) {
-                    alert('Error al registrarse: ' + error.message);
-                }
-            }
-
-            onLoginSuccess(session) {
-                this.loginForm.classList.add('hidden');
-                document.querySelector('.container').classList.remove('hidden');
-                this.chatApp.userId = session.user.id;
-                this.chatApp.initializeChat();
-            }
-        }
-
-        class ChatApp {
-            constructor() {
-                this.apiKey = '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
-'; // Reemplaza con tu API key de IA
-                this.apiEndpoint = 'https://api.groq.com/chat/completions
-'; // Reemplaza con el endpoint de tu IA
-                this.userId = null;
-                
-                document.querySelector('.container').classList.add('hidden');
-                this.authManager = new AuthManager(this);
-                this.init();
-            }
-
-            init() {
-                this.chatMessages = document.getElementById('chatMessages');
-                this.userInput = document.getElementById('userInput');
-                this.sendButton = document.getElementById('sendButton');
-                this.fileInput = document.getElementById('fileInput');
-                this.uploadButton = document.getElementById('uploadButton');
-                this.playButton = document.getElementById('playButton');
-                this.downloadMP3 = document.getElementById('downloadMP3');
-
-                this.setupEventListeners();
-            }
-
-            setupEventListeners() {
-                this.sendButton.addEventListener('click', () => this.sendMessage());
-                this.userInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        this.sendMessage();
-                    }
-                });
-
-                this.uploadButton.addEventListener('click', () => this.fileInput.click());
-                this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
-                this.playButton.addEventListener('click', () => this.playText());
-                this.downloadMP3.addEventListener('click', () => this.downloadAudio());
-            }
-
-            async sendMessage() {
-                const message = this.userInput.value.trim();
-                if (!message) return;
-
-                this.addMessage(message, 'user');
-                this.userInput.value = '';
-
-                try {
-                    const response = await this.callAPI(message);
-                    this.addMessage(response, 'ai');
-                } catch (error) {
-                    console.error('Error:', error);
-                    this.addMessage('Lo siento, ha ocurrido un error.', 'ai');
-                }
-            }
-
-            async addMessage(text, type) {
-                const messageDiv = document.createElement('div');
-                messageDiv.classList.add('message', `${type}-message`);
-                messageDiv.textContent = text;
-                this.chatMessages.appendChild(messageDiv);
-                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
-
-                try {
-                    const { error } = await supabase
-                        .from('messages')
-                        .insert([{
-                            user_id: this.userId,
-                            content: text,
-                            type: type
-                        }]);
-
-                    if (error) throw error;
-                } catch (error) {
-                    console.error('Error al guardar el mensaje:', error);
-                }
-            }
-
-            async callAPI(message) {
-                try {
-                    const response = await fetch(this.apiEndpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${this.apiKey}`
-                        },
-                        body: JSON.stringify({ message })
-                    });
-                    const data = await response.json();
-                    return data.response;
-                } catch (error) {
-                    throw new Error('Error al comunicarse con la IA');
-                }
-            }
-
-            async handleFileUpload(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                try {
-                    const text = await this.readFile(file);
-                    this.addMessage(`Archivo cargado: ${file.name}`, 'user');
-                    this.currentText = text;
-                    this.playButton.disabled = false;
-                    this.downloadMP3.disabled = false;
-                } catch (error) {
-                    console.error('Error al leer el archivo:', error);
-                    this.addMessage('Error al leer el archivo', 'ai');
-                }
-            }
-
-            async readFile(file) {
-                if (file.type === 'application/pdf') {
-                    return await this.readPDFFile(file);
-                } else {
-                    return await this.readTextFile(file);
-                }
-            }
-
-            readTextFile(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.onerror = (e) => reject(e);
-                    reader.readAsText(file);
-                });
-            }
-
-            async readPDFFile(file) {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                let text = '';
-                
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const content = await page.getTextContent();
-                    text += content.items.map(item => item.str).join(' ');
-                }
-                
-                return text;
-            }
-
-            async playText() {
-                if (!this.currentText) return;
-
-                const utterance = new SpeechSynthesisUtterance(this.currentText);
-                utterance.lang = 'es-ES';
-                speechSynthesis.speak(utterance);
-            }
-
-            async downloadAudio() {
-                if (!this.currentText) return;
-
-                try {
-                    const audioBlob = await this.convertTextToMP3(this.currentText);
-                    const url = URL.createObjectURL(audioBlob);
-                    
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'audio.mp3';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                } catch (error) {
-                    console.error('Error al convertir a MP3:', error);
-                    this.addMessage('Error al generar el archivo MP3', 'ai');
-                }
-            }
-
-            async convertTextToMP3(text) {
-                // Implementa aquí la conversión a MP3
-                throw new Error('Función no implementada');
-            }
-
-            async initializeChat() {
-                await this.loadChatHistory();
-            }
-
-            async loadChatHistory() {
-                try {
-                    const { data, error } = await supabase
-                        .from('messages')
-                        .select('*')
-                        .eq('user_id', this.userId)
-                        .order('created_at', { ascending: true });
-
-                    if (error) throw error;
-
-                    data.forEach(message => {
-                        this.addMessage(message.content, message.type);
-                    });
-                } catch (error) {
-                    console.error('Error al cargar el historial:', error);
-                }
-            }
-        }
-
-        // Inicializar la aplicación
-        document.addEventListener('DOMContentLoaded', () => {
-            new ChatApp();
-        });
-    </script>
+    
+    <div class="section" style="background-color: #f5f5f5;">
+        <h2>Sobre Nosotros</h2>
+        <p>En LuxeCuff creemos en la elegancia accesible. Diseñamos joyería moderna para complementar tu estilo diario.</p>
+    </div>
+    
+    <footer style="padding: 20px; background-color: #222; color: white;">
+        &copy; 2025 LuxeCuff - Todos los derechos reservados.
+    </footer>
 </body>
 </html>
