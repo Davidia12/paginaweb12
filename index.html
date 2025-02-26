@@ -1,81 +1,25 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LuxeCuff - Joyería Minimalista</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-        header {
-            background-color: #f5f5f5;
-            padding: 20px;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .banner {
-            background: url('banner.jpg') no-repeat center center/cover;
-            height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .section {
-            padding: 40px;
-        }
-        .product {
-            display: inline-block;
-            margin: 20px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            width: 300px;
-        }
-        .cta-button {
-            background-color: #ffcc00;
-            color: black;
-            padding: 15px 20px;
-            text-decoration: none;
-            font-size: 18px;
-            border-radius: 5px;
-            margin-top: 20px;
-            display: inline-block;
-        }
-    </style>
-</head>
-<body>
-    <header>LuxeCuff - Elegancia Minimalista</header>
-    <div class="banner">Descubre el toque perfecto para tu estilo ✨</div>
-    
-    <div class="section">
-        <h2>Nuestros Productos</h2>
-        <div class="product">
-            <img src="bracelet.jpg" width="250" alt="Brazalete dorado">
-            <h3>Brazalete Minimalista</h3>
-            <p>Diseño elegante, perfecto para cualquier ocasión.</p>
-            <a href="#" class="cta-button">Comprar Ahora</a>
-        </div>
-    </div>
-    
-    <div class="section">
-        <h2>Testimonios</h2>
-        <p>⭐⭐⭐⭐⭐ "Me encanta este brazalete, es justo lo que buscaba!" - Laura G.</p>
-    </div>
-    
-    <div class="section" style="background-color: #f5f5f5;">
-        <h2>Sobre Nosotros</h2>
-        <p>En LuxeCuff creemos en la elegancia accesible. Diseñamos joyería moderna para complementar tu estilo diario.</p>
-    </div>
-    
-    <footer style="padding: 20px; background-color: #222; color: white;">
-        &copy; 2025 LuxeCuff - Todos los derechos reservados.
-    </footer>
-</body>
-</html>
+# Import necessary libraries and configure settings
+import torch
+import torchaudio
+torch._dynamo.config.cache_size_limit = 64
+torch._dynamo.config.suppress_errors = True
+torch.set_float32_matmul_precision('high')
+
+import ChatTTS
+from IPython.display import Audio
+
+# Initialize and load the model: 
+chat = ChatTTS.Chat()
+chat.load_models(compile=False) # Set to True for better performance
+
+# Define the text input for inference (Support Batching)
+texts = [
+    "So we found being competitive and collaborative was a huge way of staying motivated towards our goals, so one person to call when you fall off, one person who gets you back on then one person to actually do the activity with.",
+    ]
+
+# Perform inference and play the generated audio
+wavs = chat.infer(texts)
+Audio(wavs[0], rate=24_000, autoplay=True)
+
+# Save the generated audio 
+torchaudio.save("output.wav", torch.from_numpy(wavs[0]), 24000)
